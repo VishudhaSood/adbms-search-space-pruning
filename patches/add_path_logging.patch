@@ -1,0 +1,15 @@
+diff --git a/src/backend/optimizer/util/pathnode.c b/src/backend/optimizer/util/pathnode.c
+index 5303231d02..8ec12ed359 100644
+--- a/src/backend/optimizer/util/pathnode.c
++++ b/src/backend/optimizer/util/pathnode.c
+@@ -680,6 +680,10 @@ standard_add_path(RelOptInfo *parent_rel, Path *new_path)
+ 			break;
+ 	}
+ 
++		elog(LOG, "add_path: rels=%s type=%d startup=%.2f total=%.2f rows=%.0f kept=%s",
++		 bmsToString(parent_rel->relids), (int) new_path->pathtype,
++		 new_path->startup_cost, new_path->total_cost, new_path->rows,
++		 accept_new ? "yes" : "no");
+ 	if (accept_new)
+ 	{
+ 		/* Accept the new path: insert it at proper place in pathlist */
