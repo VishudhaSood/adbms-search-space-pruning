@@ -6,9 +6,12 @@ RUN apt update && apt install -y \
     git vim unzip zstd default-jre \
     libicu-dev libreadline-dev libssl-dev libzstd-dev liblz4-dev libossp-uuid-dev liburing-dev \
     gdb gdbserver \
-    && rm -rf /var/lib/apt/lists/*
+    locales openjdk-17-jdk maven \
+    && rm -rf /var/lib/apt/lists/* \
+    && locale-gen en_US.UTF-8
 RUN apt update && apt install -y python3-pip && rm -rf /var/lib/apt/lists/* \
     && pip3 install --no-cache-dir "meson>=1.10.1"
 RUN useradd -m -s /bin/bash dev && echo "dev ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER dev
-ENV CC=/usr/bin/gcc CXX=/usr/bin/g++
+ENV CC=/usr/bin/gcc CXX=/usr/bin/g++ \
+    LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
