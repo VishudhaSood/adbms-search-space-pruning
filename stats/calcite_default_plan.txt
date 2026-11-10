@@ -1,0 +1,18 @@
+=== Logical plan ===
+LogicalProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], id1=[$4], b_id=[$5]): rowcount = 3375.0, cumulative cost = {31050.0 rows, 43053.0 cpu, 0.0 io}, id = 19
+  LogicalFilter(condition=[=($1, 3)]): rowcount = 3375.0, cumulative cost = {27675.0 rows, 22803.0 cpu, 0.0 io}, id = 18
+    LogicalJoin(condition=[=($2, $5)], joinType=[inner]): rowcount = 22500.0, cumulative cost = {24300.0 rows, 303.0 cpu, 0.0 io}, id = 17
+      LogicalJoin(condition=[=($0, $3)], joinType=[inner]): rowcount = 1500.0, cumulative cost = {1700.0 rows, 202.0 cpu, 0.0 io}, id = 15
+        JdbcTableScan(table=[[pg, a]]): rowcount = 100.0, cumulative cost = {100.0 rows, 101.0 cpu, 0.0 io}, id = 13
+        JdbcTableScan(table=[[pg, b]]): rowcount = 100.0, cumulative cost = {100.0 rows, 101.0 cpu, 0.0 io}, id = 14
+      JdbcTableScan(table=[[pg, c]]): rowcount = 100.0, cumulative cost = {100.0 rows, 101.0 cpu, 0.0 io}, id = 16
+
+=== Physical plan (Volcano) ===
+JdbcToEnumerableConverter: rowcount = 3375.0, cumulative cost = {4252.5 rows, 740.5 cpu, 0.0 io}, id = 208
+  JdbcJoin(condition=[=($2, $5)], joinType=[inner]): rowcount = 3375.0, cumulative cost = {3915.0 rows, 403.0 cpu, 0.0 io}, id = 207
+    JdbcJoin(condition=[=($0, $3)], joinType=[inner]): rowcount = 225.0, cumulative cost = {440.0 rows, 302.0 cpu, 0.0 io}, id = 206
+      JdbcFilter(condition=[=($1, 3)]): rowcount = 15.0, cumulative cost = {115.0 rows, 201.0 cpu, 0.0 io}, id = 205
+        JdbcTableScan(table=[[pg, a]]): rowcount = 100.0, cumulative cost = {100.0 rows, 101.0 cpu, 0.0 io}, id = 13
+      JdbcTableScan(table=[[pg, b]]): rowcount = 100.0, cumulative cost = {100.0 rows, 101.0 cpu, 0.0 io}, id = 14
+    JdbcTableScan(table=[[pg, c]]): rowcount = 100.0, cumulative cost = {100.0 rows, 101.0 cpu, 0.0 io}, id = 16
+
