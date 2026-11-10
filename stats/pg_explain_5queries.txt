@@ -1,0 +1,72 @@
+]633;E;for q in "SELECT * FROM a WHERE x = 3" "SELECT * FROM a JOIN b ON a.id = b.a_id" "SELECT * FROM a JOIN b ON a.id = b.a_id WHERE a.x = 3" "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3" "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id";f509c3c1-f40c-48b2-bc1b-2113e5c045d9]633;C### SELECT * FROM a WHERE x = 3
+SET
+SET
+                    QUERY PLAN                    
+--------------------------------------------------
+ Seq Scan on a  (cost=0.00..17.50 rows=1 width=8)
+   Filter: (x = 3)
+ Optimizer: planner=Standard joinorder=<unset>
+(3 rows)
+
+### SELECT * FROM a JOIN b ON a.id = b.a_id
+SET
+SET
+                           QUERY PLAN                            
+-----------------------------------------------------------------
+ Hash Join  (cost=27.50..113.64 rows=1000 width=16)
+   Hash Cond: (b.a_id = a.id)
+   ->  Seq Scan on b  (cost=0.00..73.00 rows=5000 width=8)
+   ->  Hash  (cost=15.00..15.00 rows=1000 width=8)
+         ->  Seq Scan on a  (cost=0.00..15.00 rows=1000 width=8)
+ Optimizer: planner=Standard joinorder=Dynamic Programming
+(6 rows)
+
+### SELECT * FROM a JOIN b ON a.id = b.a_id WHERE a.x = 3
+SET
+SET
+                          QUERY PLAN                          
+--------------------------------------------------------------
+ Hash Join  (cost=17.51..103.65 rows=1 width=16)
+   Hash Cond: (b.a_id = a.id)
+   ->  Seq Scan on b  (cost=0.00..73.00 rows=5000 width=8)
+   ->  Hash  (cost=17.50..17.50 rows=1 width=8)
+         ->  Seq Scan on a  (cost=0.00..17.50 rows=1 width=8)
+               Filter: (x = 3)
+ Optimizer: planner=Standard joinorder=Dynamic Programming
+(7 rows)
+
+### SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3
+SET
+SET
+                                QUERY PLAN                                
+--------------------------------------------------------------------------
+ Hash Join  (cost=103.66..467.67 rows=1 width=24)
+   Hash Cond: (c.b_id = b.id)
+   ->  Seq Scan on c  (cost=0.00..289.00 rows=20000 width=8)
+   ->  Hash  (cost=103.65..103.65 rows=1 width=16)
+         ->  Hash Join  (cost=17.51..103.65 rows=1 width=16)
+               Hash Cond: (b.a_id = a.id)
+               ->  Seq Scan on b  (cost=0.00..73.00 rows=5000 width=8)
+               ->  Hash  (cost=17.50..17.50 rows=1 width=8)
+                     ->  Seq Scan on a  (cost=0.00..17.50 rows=1 width=8)
+                           Filter: (x = 3)
+ Optimizer: planner=Standard joinorder=Dynamic Programming
+(11 rows)
+
+### SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id
+SET
+SET
+                                 QUERY PLAN                                  
+-----------------------------------------------------------------------------
+ Hash Join  (cost=126.14..500.14 rows=1000 width=24)
+   Hash Cond: (c.b_id = b.id)
+   ->  Seq Scan on c  (cost=0.00..289.00 rows=20000 width=8)
+   ->  Hash  (cost=113.64..113.64 rows=1000 width=16)
+         ->  Hash Join  (cost=27.50..113.64 rows=1000 width=16)
+               Hash Cond: (b.a_id = a.id)
+               ->  Seq Scan on b  (cost=0.00..73.00 rows=5000 width=8)
+               ->  Hash  (cost=15.00..15.00 rows=1000 width=8)
+                     ->  Seq Scan on a  (cost=0.00..15.00 rows=1000 width=8)
+ Optimizer: planner=Standard joinorder=Dynamic Programming
+(10 rows)
+
