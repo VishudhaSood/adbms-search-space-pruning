@@ -75,6 +75,8 @@ public class Main {
     RelMetadataProvider provider = ChainedRelMetadataProvider.of(List.of(
         ReflectiveRelMetadataProvider.reflectiveSource(
             new PgSelectivity(stats), BuiltInMetadata.Selectivity.Handler.class),
+        ReflectiveRelMetadataProvider.reflectiveSource(
+            new PgCostModel(stats), BuiltInMetadata.NonCumulativeCost.Handler.class),
         DefaultRelMetadataProvider.INSTANCE));
 
     // 4. Rules (same as Day 1)
@@ -100,7 +102,7 @@ public class Main {
         .defaultSchema(root.getSubSchema("pgstats"))
         .parserConfig(SqlParser.config().withCaseSensitive(false))
         .programs(Programs.ofRules(rules))
-        // Day 2 evening: .costFactory(new PgCostFactory())   <- Vishudha's cost model
+        .costFactory(new PgCostFactory())   // PG-style cost model (Vishudha)
         .build();
 
     // 5. Plan each query
