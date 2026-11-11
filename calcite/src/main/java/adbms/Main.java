@@ -50,7 +50,7 @@ public class Main {
     Connection conn = DriverManager.getConnection("jdbc:calcite:");
     SchemaPlus root = conn.unwrap(CalciteConnection.class).getRootSchema();
     DataSource ds = JdbcSchema.dataSource(
-        "jdbc:postgresql://localhost:5432/dev", "org.postgresql.Driver", "dev", "");
+        "jdbc:postgresql://localhost:5432/test", "org.postgresql.Driver", "dev", "");
     JdbcSchema jdbc = JdbcSchema.create(root, "pg", ds, null, "public");
 
     // 2. Our own tables: PG's columns + PG's row counts (and keys where n_distinct = -1)
