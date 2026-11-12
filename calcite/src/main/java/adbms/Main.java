@@ -14,6 +14,7 @@ import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.plan.volcano.RelSubset;
+import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.logical.LogicalJoin;
 import org.apache.calcite.rel.metadata.BuiltInMetadata;
@@ -36,6 +37,8 @@ import org.apache.calcite.util.ImmutableBitSet;
 public class Main {
   public static void main(String[] args) throws Exception {
     String statsPath = args.length > 0 ? args[0] : "../stats/test_tables.json";
+    boolean topDown = args.length > 1 && args[1].equals("topdown");   // stretch: Calcite's top-down mode with cost-bound pruning
+    String traceSuffix = topDown ? "_topdown" : "";
     PgStats stats = PgStats.load(statsPath);
 
     String[] queries = {
@@ -43,7 +46,11 @@ public class Main {
       "SELECT * FROM a JOIN b ON a.id = b.a_id",
       "SELECT * FROM a JOIN b ON a.id = b.a_id WHERE a.x = 3",
       "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3",
-      "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id"
+      "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id",
+      // week 3: 4 and 5 tables (needs sql/test_tables_de.sql + re-run extract_stats.sql)
+      "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id WHERE a.x = 3",
+      "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id JOIN e ON a.id = e.a_id WHERE a.x = 3",
+      "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id"
     };
 
     // 1. PostgreSQL connection, used only to read each table's columns
@@ -106,15 +113,26 @@ public class Main {
         .build();
 
     // 5. Plan each query
-    for (String sql : queries) {
+    for (int qi = 0; qi < queries.length; qi++) {
+      String sql = queries[qi];
+      String qname = "Q" + (qi + 1);
       Planner planner = Frameworks.getPlanner(cfg);      // fresh planner per query
       RelNode logical = planner.rel(planner.validate(planner.parse(sql))).project();
 
       logical.getCluster().setMetadataProvider(provider); // must be before transform()
       logical.getCluster().invalidateMetadataQuery();
 
+      // week 3: record the search (memo, rule firings, best-plan timeline)
+      VolcanoPlanner vp = (VolcanoPlanner) logical.getCluster().getPlanner();
+      if (topDown) vp.setTopDownOpt(true);
+      SearchTrace trace = new SearchTrace(vp, qname, sql);
+      vp.addListener(trace);
+
       RelNode best = planner.transform(0,
           logical.getTraitSet().replace(EnumerableConvention.INSTANCE), logical);
+
+      trace.finish();
+      trace.write("../traces/calcite_" + qname + traceSuffix + ".json");
 
       System.out.println("\n### " + sql);
       System.out.println(RelOptUtil.toString(best, SqlExplainLevel.ALL_ATTRIBUTES));

@@ -1,0 +1,151 @@
+diff --git a/src/backend/optimizer/path/allpaths.c b/src/backend/optimizer/path/allpaths.c
+index aa11037..3fc5a22 100644
+--- a/src/backend/optimizer/path/allpaths.c
++++ b/src/backend/optimizer/path/allpaths.c
+@@ -356,6 +356,8 @@ set_base_rel_pathlists(PlannerInfo *root)
+ 		if (rel->reloptkind != RELOPT_BASEREL)
+ 			continue;
+ 
++		elog(LOG, "TRACE baserel relid=%u name=%s", rti,
++			 root->simple_rte_array[rti]->eref->aliasname);
+ 		set_rel_pathlist(root, rel, rti, root->simple_rte_array[rti]);
+ 	}
+ }
+diff --git a/src/backend/optimizer/path/joinpath.c b/src/backend/optimizer/path/joinpath.c
+index 621b1f1..a96a19f 100644
+--- a/src/backend/optimizer/path/joinpath.c
++++ b/src/backend/optimizer/path/joinpath.c
+@@ -936,6 +936,12 @@ try_nestloop_path(PlannerInfo *root,
+ 	}
+ 	else
+ 	{
++		elog(LOG, "TRACE precheck kind=join rels=%s type=%s outer=%s inner=%s startup=%.2f total=%.2f rows=0 keys=0 disabled=%d",
++			 bmsToString(joinrel->relids), "NestLoop",
++			 bmsToString(outer_path->parent->relids),
++			 bmsToString(inner_path->parent->relids),
++			 workspace.startup_cost, workspace.total_cost,
++			 workspace.disabled_nodes);
+ 		/* Waste no memory when we reject a path here */
+ 		bms_free(required_outer);
+ 	}
+@@ -1131,6 +1137,12 @@ try_mergejoin_path(PlannerInfo *root,
+ 	}
+ 	else
+ 	{
++		elog(LOG, "TRACE precheck kind=join rels=%s type=%s outer=%s inner=%s startup=%.2f total=%.2f rows=0 keys=0 disabled=%d",
++			 bmsToString(joinrel->relids), "MergeJoin",
++			 bmsToString(outer_path->parent->relids),
++			 bmsToString(inner_path->parent->relids),
++			 workspace.startup_cost, workspace.total_cost,
++			 workspace.disabled_nodes);
+ 		/* Waste no memory when we reject a path here */
+ 		bms_free(required_outer);
+ 	}
+@@ -1281,6 +1293,12 @@ try_hashjoin_path(PlannerInfo *root,
+ 	}
+ 	else
+ 	{
++		elog(LOG, "TRACE precheck kind=join rels=%s type=%s outer=%s inner=%s startup=%.2f total=%.2f rows=0 keys=0 disabled=%d",
++			 bmsToString(joinrel->relids), "HashJoin",
++			 bmsToString(outer_path->parent->relids),
++			 bmsToString(inner_path->parent->relids),
++			 workspace.startup_cost, workspace.total_cost,
++			 workspace.disabled_nodes);
+ 		/* Waste no memory when we reject a path here */
+ 		bms_free(required_outer);
+ 	}
+diff --git a/src/backend/optimizer/util/pathnode.c b/src/backend/optimizer/util/pathnode.c
+index 5303231..180aa60 100644
+--- a/src/backend/optimizer/util/pathnode.c
++++ b/src/backend/optimizer/util/pathnode.c
+@@ -46,6 +46,63 @@ typedef enum
+ add_path_hook_type add_path_hook = NULL;
+ add_partial_path_hook_type add_partial_path_hook = NULL;
+ add_path_precheck_hook_type add_path_precheck_hook = NULL;
++
++/* ---- ADBMS search-space trace (Vishudha/Gourav) ---- */
++static const char *
++trace_type_name(NodeTag t)
++{
++	switch (t)
++	{
++		case T_SeqScan: return "SeqScan";
++		case T_IndexScan: return "IndexScan";
++		case T_IndexOnlyScan: return "IndexOnlyScan";
++		case T_BitmapHeapScan: return "BitmapHeapScan";
++		case T_NestLoop: return "NestLoop";
++		case T_MergeJoin: return "MergeJoin";
++		case T_HashJoin: return "HashJoin";
++		case T_Sort: return "Sort";
++		case T_IncrementalSort: return "IncrementalSort";
++		case T_Material: return "Material";
++		case T_Memoize: return "Memoize";
++		case T_Result: return "Result";
++		case T_Gather: return "Gather";
++		case T_GatherMerge: return "GatherMerge";
++		default: return "Other";
++	}
++}
++
++static const char *
++trace_kind_name(RelOptKind k)
++{
++	switch (k)
++	{
++		case RELOPT_BASEREL: return "base";
++		case RELOPT_JOINREL: return "join";
++		case RELOPT_UPPER_REL: return "upper";
++		default: return "other";
++	}
++}
++
++/* One log line per path event: kept / rejected / evict / survivor */
++static void
++trace_path(const char *what, RelOptInfo *rel, Path *p)
++{
++	const char *outer = "-";
++	const char *inner = "-";
++
++	if (IsA(p, NestPath) || IsA(p, MergePath) || IsA(p, HashPath))
++	{
++		JoinPath   *jp = (JoinPath *) p;
++
++		outer = bmsToString(jp->outerjoinpath->parent->relids);
++		inner = bmsToString(jp->innerjoinpath->parent->relids);
++	}
++	elog(LOG, "TRACE %s kind=%s rels=%s type=%s outer=%s inner=%s startup=%.2f total=%.2f rows=%.0f keys=%d disabled=%d",
++		 what, trace_kind_name(rel->reloptkind), bmsToString(rel->relids),
++		 trace_type_name(p->pathtype), outer, inner,
++		 p->startup_cost, p->total_cost, p->rows, list_length(p->pathkeys), p->disabled_nodes);
++}
++/* ---- end trace ---- */
+ add_partial_path_precheck_hook_type add_partial_path_precheck_hook = NULL;
+ 
+ /*
+@@ -288,6 +345,9 @@ set_cheapest(RelOptInfo *parent_rel)
+ 	if (parent_rel->pathlist == NIL)
+ 		elog(ERROR, "could not devise a query plan for the given query");
+ 
++	foreach(p, parent_rel->pathlist)
++		trace_path("survivor", parent_rel, (Path *) lfirst(p));
++
+ 	cheapest_startup_path = cheapest_total_path = best_param_path = NULL;
+ 	parameterized_paths = NIL;
+ 
+@@ -650,6 +710,7 @@ standard_add_path(RelOptInfo *parent_rel, Path *new_path)
+ 		 */
+ 		if (remove_old)
+ 		{
++			trace_path("evict", parent_rel, old_path);
+ 			parent_rel->pathlist = foreach_delete_current(parent_rel->pathlist,
+ 														  p1);
+ 
+@@ -680,6 +741,8 @@ standard_add_path(RelOptInfo *parent_rel, Path *new_path)
+ 			break;
+ 	}
+ 
++	trace_path(accept_new ? "kept" : "rejected", parent_rel, new_path);
++
+ 	if (accept_new)
+ 	{
+ 		/* Accept the new path: insert it at proper place in pathlist */
