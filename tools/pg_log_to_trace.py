@@ -83,7 +83,9 @@ def main():
         }
         key = ",".join(ev["set"])
         if what == "survivor":
-            if last_surv_key != key:          # a new set_cheapest call: start the list again
+            lst = survivors.get(key)
+            same = lst and all(lst[0][f] == ev[f] for f in ("op", "startup", "total", "inputs"))
+            if last_surv_key != key or same:  # a new set_cheapest call (PG can call it twice): start again
                 survivors[key] = []
             survivors[key].append(ev)
             last_surv_key = key

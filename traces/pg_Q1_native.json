@@ -1,0 +1,75 @@
+{
+ "optimizer": "pg",
+ "query": "Q1",
+ "sql": "SELECT * FROM a WHERE x = 3",
+ "tables": [
+  "a"
+ ],
+ "events": [
+  {
+   "set": [
+    "a"
+   ],
+   "op": "SeqScan",
+   "inputs": [],
+   "startup": 0.0,
+   "total": 17.5,
+   "rows": 100.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 1,
+   "result": "kept"
+  }
+ ],
+ "survivors": {
+  "a": [
+   {
+    "set": [
+     "a"
+    ],
+    "op": "SeqScan",
+    "inputs": [],
+    "startup": 0.0,
+    "total": 17.5,
+    "rows": 100.0,
+    "sorted": false,
+    "disabled": 0
+   }
+  ]
+ },
+ "per_set": [
+  {
+   "set": [
+    "a"
+   ],
+   "kept": 1,
+   "rejected": 0,
+   "evicted": 0,
+   "precheck": 0,
+   "retained": 1,
+   "disabled_paths": 0
+  }
+ ],
+ "summary": {
+  "tables": 1,
+  "sets_built": 1,
+  "considered": 1,
+  "built": 1,
+  "pruned_precheck": 0,
+  "pruned_on_arrival": 0,
+  "evicted_later": 0,
+  "retained": 1,
+  "disabled_paths": 0
+ },
+ "final_plan": {
+  "op": "SeqScan",
+  "set": [
+   "a"
+  ],
+  "startup": 0.0,
+  "total": 17.5,
+  "rows": 100.0,
+  "children": []
+ },
+ "explain": "                     QUERY PLAN                     \n----------------------------------------------------\n Seq Scan on a  (cost=0.00..17.50 rows=100 width=8)\n   Filter: (x = 3)\n Optimizer: planner=Custom Hook joinorder=<unset>\n(3 rows)\n\n"
+}

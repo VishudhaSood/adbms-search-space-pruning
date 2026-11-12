@@ -1,0 +1,14 @@
+                               QUERY PLAN                               
+------------------------------------------------------------------------
+ Hash Join  (cost=168.00..582.27 rows=20000 width=32)
+   Hash Cond: (b.a_id = a.id)
+   ->  Hash Join  (cost=140.50..502.04 rows=20000 width=24)
+         Hash Cond: (c.b_id = b.id)
+         ->  Seq Scan on c  (cost=0.00..309.00 rows=20000 width=12)
+         ->  Hash  (cost=78.00..78.00 rows=5000 width=12)
+               ->  Seq Scan on b  (cost=0.00..78.00 rows=5000 width=12)
+   ->  Hash  (cost=15.00..15.00 rows=1000 width=8)
+         ->  Seq Scan on a  (cost=0.00..15.00 rows=1000 width=8)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(10 rows)
+

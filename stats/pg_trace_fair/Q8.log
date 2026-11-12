@@ -1,0 +1,188 @@
+LOG:  TRACE baserel relid=1 name=a
+LOG:  TRACE kept kind=base rels=(b 1) type=SeqScan outer=- inner=- startup=0.00 total=15.00 rows=1000 keys=0 disabled=0
+LOG:  TRACE kept kind=base rels=(b 1) type=IndexScan outer=- inner=- startup=0.28 total=43.27 rows=1000 keys=1 disabled=1
+LOG:  TRACE rejected kind=base rels=(b 1) type=IndexScan outer=- inner=- startup=0.28 total=0.30 rows=1000 keys=1 disabled=1
+LOG:  TRACE rejected kind=base rels=(b 1) type=BitmapHeapScan outer=- inner=- startup=0.54 total=4.55 rows=1000 keys=0 disabled=1
+LOG:  TRACE survivor kind=base rels=(b 1) type=SeqScan outer=- inner=- startup=0.00 total=15.00 rows=1000 keys=0 disabled=0
+LOG:  TRACE survivor kind=base rels=(b 1) type=IndexScan outer=- inner=- startup=0.28 total=43.27 rows=1000 keys=1 disabled=1
+LOG:  TRACE baserel relid=2 name=b
+LOG:  TRACE kept kind=base rels=(b 2) type=SeqScan outer=- inner=- startup=0.00 total=78.00 rows=5000 keys=0 disabled=0
+LOG:  TRACE kept kind=base rels=(b 2) type=IndexScan outer=- inner=- startup=0.28 total=170.28 rows=5000 keys=1 disabled=1
+LOG:  TRACE rejected kind=base rels=(b 2) type=IndexScan outer=- inner=- startup=0.28 total=0.31 rows=5000 keys=1 disabled=1
+LOG:  TRACE rejected kind=base rels=(b 2) type=BitmapHeapScan outer=- inner=- startup=1.54 total=5.56 rows=5000 keys=0 disabled=1
+LOG:  TRACE survivor kind=base rels=(b 2) type=SeqScan outer=- inner=- startup=0.00 total=78.00 rows=5000 keys=0 disabled=0
+LOG:  TRACE survivor kind=base rels=(b 2) type=IndexScan outer=- inner=- startup=0.28 total=170.28 rows=5000 keys=1 disabled=1
+LOG:  TRACE baserel relid=4 name=c
+LOG:  TRACE kept kind=base rels=(b 4) type=SeqScan outer=- inner=- startup=0.00 total=309.00 rows=20000 keys=0 disabled=0
+LOG:  TRACE kept kind=base rels=(b 4) type=IndexScan outer=- inner=- startup=0.29 total=640.29 rows=20000 keys=1 disabled=1
+LOG:  TRACE rejected kind=base rels=(b 4) type=IndexScan outer=- inner=- startup=0.29 total=0.37 rows=20000 keys=1 disabled=1
+LOG:  TRACE rejected kind=base rels=(b 4) type=BitmapHeapScan outer=- inner=- startup=5.32 total=9.33 rows=20000 keys=0 disabled=1
+LOG:  TRACE survivor kind=base rels=(b 4) type=SeqScan outer=- inner=- startup=0.00 total=309.00 rows=20000 keys=0 disabled=0
+LOG:  TRACE survivor kind=base rels=(b 4) type=IndexScan outer=- inner=- startup=0.29 total=640.29 rows=20000 keys=1 disabled=1
+LOG:  TRACE baserel relid=6 name=d
+LOG:  TRACE kept kind=base rels=(b 6) type=SeqScan outer=- inner=- startup=0.00 total=155.00 rows=10000 keys=0 disabled=0
+LOG:  TRACE survivor kind=base rels=(b 6) type=SeqScan outer=- inner=- startup=0.00 total=155.00 rows=10000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2) type=MergeJoin outer=(b 1) inner=(b 2) startup=450.02 total=530.02 rows=5000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 1) inner=(b 2) startup=0.00 total=78015.00 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 1) inner=(b 2) startup=0.00 total=12605.50 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 1) inner=(b 2) startup=0.28 total=78043.27 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 1) inner=(b 2) startup=0.28 total=12633.77 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=MergeJoin outer=(b 1) inner=(b 2) startup=385.47 total=440.97 rows=0 keys=0 disabled=1
+LOG:  TRACE evict kind=join rels=(b 1 2) type=MergeJoin outer=(b 1) inner=(b 2) startup=450.02 total=530.02 rows=5000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2) type=HashJoin outer=(b 1) inner=(b 2) startup=140.50 total=214.25 rows=5000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=MergeJoin outer=(b 2) inner=(b 1) startup=450.02 total=465.02 rows=0 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.00 total=137440.77 rows=5000 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.00 total=75020.65 rows=5000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.28 total=137533.06 rows=5000 keys=1 disabled=1
+LOG:  TRACE evict kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.28 total=137533.06 rows=5000 keys=1 disabled=1
+LOG:  TRACE kept kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.28 total=75112.93 rows=5000 keys=1 disabled=1
+LOG:  TRACE evict kind=join rels=(b 1 2) type=HashJoin outer=(b 1) inner=(b 2) startup=140.50 total=214.25 rows=5000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2) type=HashJoin outer=(b 2) inner=(b 1) startup=27.50 total=118.68 rows=5000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 2 4) type=MergeJoin outer=(b 2) inner=(b 4) startup=2122.97 total=2447.95 rows=20000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4) type=NestLoop outer=(b 2) inner=(b 4) startup=0.00 total=1545078.00 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4) type=NestLoop outer=(b 2) inner=(b 4) startup=0.00 total=250437.00 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4) type=NestLoop outer=(b 2) inner=(b 4) startup=0.28 total=1545170.28 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 2 4) type=NestLoop outer=(b 2) inner=(b 4) startup=0.28 total=250529.28 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 2 4) type=MergeJoin outer=(b 2) inner=(b 4) startup=1738.06 total=1958.05 rows=0 keys=0 disabled=1
+LOG:  TRACE evict kind=join rels=(b 2 4) type=MergeJoin outer=(b 2) inner=(b 4) startup=2122.97 total=2447.95 rows=20000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 2 4) type=HashJoin outer=(b 2) inner=(b 4) startup=559.00 total=874.50 rows=20000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4) type=MergeJoin outer=(b 4) inner=(b 2) startup=2122.97 total=2185.46 rows=0 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 2 4) type=NestLoop outer=(b 4) inner=(b 2) startup=0.00 total=2809747.22 rows=20000 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 2 4) type=NestLoop outer=(b 4) inner=(b 2) startup=0.00 total=1500099.62 rows=20000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 2 4) type=NestLoop outer=(b 4) inner=(b 2) startup=0.29 total=2810078.51 rows=20000 keys=1 disabled=1
+LOG:  TRACE evict kind=join rels=(b 2 4) type=NestLoop outer=(b 4) inner=(b 2) startup=0.29 total=2810078.51 rows=20000 keys=1 disabled=1
+LOG:  TRACE kept kind=join rels=(b 2 4) type=NestLoop outer=(b 4) inner=(b 2) startup=0.29 total=1500430.91 rows=20000 keys=1 disabled=1
+LOG:  TRACE evict kind=join rels=(b 2 4) type=HashJoin outer=(b 2) inner=(b 4) startup=559.00 total=874.50 rows=20000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 2 4) type=HashJoin outer=(b 4) inner=(b 2) startup=140.50 total=502.04 rows=20000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 4 6) type=MergeJoin outer=(b 4) inner=(b 6) startup=2557.16 total=2757.16 rows=10000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 4 6) type=NestLoop outer=(b 4) inner=(b 6) startup=0.00 total=3100309.00 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 4 6) type=NestLoop outer=(b 4) inner=(b 6) startup=0.00 total=500489.00 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 4 6) type=NestLoop outer=(b 4) inner=(b 6) startup=0.29 total=3100640.29 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 4 6) type=NestLoop outer=(b 4) inner=(b 6) startup=0.29 total=500820.29 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 4 6) type=MergeJoin outer=(b 4) inner=(b 6) startup=819.68 total=1164.71 rows=0 keys=0 disabled=1
+LOG:  TRACE evict kind=join rels=(b 4 6) type=MergeJoin outer=(b 4) inner=(b 6) startup=2557.16 total=2757.16 rows=10000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 4 6) type=HashJoin outer=(b 4) inner=(b 6) startup=280.00 total=764.00 rows=10000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 4 6) type=MergeJoin outer=(b 6) inner=(b 4) startup=2557.16 total=2607.16 rows=0 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 4 6) type=NestLoop outer=(b 6) inner=(b 4) startup=0.00 total=5590155.00 rows=10000 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 4 6) type=NestLoop outer=(b 6) inner=(b 4) startup=0.00 total=3000514.00 rows=10000 keys=0 disabled=0
+LOG:  TRACE evict kind=join rels=(b 4 6) type=HashJoin outer=(b 4) inner=(b 6) startup=280.00 total=764.00 rows=10000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 4 6) type=HashJoin outer=(b 6) inner=(b 4) startup=559.00 total=740.25 rows=10000 keys=0 disabled=0
+LOG:  TRACE survivor kind=join rels=(b 1 2) type=HashJoin outer=(b 2) inner=(b 1) startup=27.50 total=118.68 rows=5000 keys=0 disabled=0
+LOG:  TRACE survivor kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.28 total=75112.93 rows=5000 keys=1 disabled=1
+LOG:  TRACE survivor kind=join rels=(b 2 4) type=HashJoin outer=(b 4) inner=(b 2) startup=140.50 total=502.04 rows=20000 keys=0 disabled=0
+LOG:  TRACE survivor kind=join rels=(b 2 4) type=NestLoop outer=(b 4) inner=(b 2) startup=0.29 total=1500430.91 rows=20000 keys=1 disabled=1
+LOG:  TRACE survivor kind=join rels=(b 4 6) type=HashJoin outer=(b 6) inner=(b 4) startup=559.00 total=740.25 rows=10000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2 4) type=MergeJoin outer=(b 1 2) inner=(b 4) startup=2163.65 total=2488.63 rows=20000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=NestLoop outer=(b 1 2) inner=(b 4) startup=27.50 total=1545118.68 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=NestLoop outer=(b 1 2) inner=(b 4) startup=27.50 total=250477.68 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=NestLoop outer=(b 1 2) inner=(b 4) startup=0.28 total=1620112.93 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=NestLoop outer=(b 1 2) inner=(b 4) startup=0.28 total=325471.93 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=MergeJoin outer=(b 1 2) inner=(b 4) startup=1738.06 total=76900.70 rows=0 keys=0 disabled=1
+LOG:  TRACE evict kind=join rels=(b 1 2 4) type=MergeJoin outer=(b 1 2) inner=(b 4) startup=2163.65 total=2488.63 rows=20000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2 4) type=HashJoin outer=(b 1 2) inner=(b 4) startup=586.50 total=915.18 rows=20000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=MergeJoin outer=(b 4) inner=(b 1 2) startup=2163.65 total=2226.14 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=NestLoop outer=(b 4) inner=(b 1 2) startup=27.50 total=1823949.00 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=NestLoop outer=(b 4) inner=(b 1 2) startup=27.50 total=250440.18 rows=0 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2 4) type=NestLoop outer=(b 4) inner=(b 1 2) startup=27.79 total=3074280.29 rows=20000 keys=1 disabled=1
+LOG:  TRACE evict kind=join rels=(b 1 2 4) type=NestLoop outer=(b 4) inner=(b 1 2) startup=27.79 total=3074280.29 rows=20000 keys=1 disabled=1
+LOG:  TRACE kept kind=join rels=(b 1 2 4) type=NestLoop outer=(b 4) inner=(b 1 2) startup=27.79 total=1500771.47 rows=20000 keys=1 disabled=1
+LOG:  TRACE evict kind=join rels=(b 1 2 4) type=HashJoin outer=(b 1 2) inner=(b 4) startup=586.50 total=915.18 rows=20000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2 4) type=HashJoin outer=(b 4) inner=(b 1 2) startup=181.18 total=765.18 rows=20000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=MergeJoin outer=(b 2 4) inner=(b 1) startup=1995.65 total=2048.14 rows=0 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 1 2 4) type=NestLoop outer=(b 2 4) inner=(b 1) startup=140.50 total=549953.14 rows=20000 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 1 2 4) type=NestLoop outer=(b 2 4) inner=(b 1) startup=140.50 total=300220.14 rows=20000 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 1 2 4) type=NestLoop outer=(b 2 4) inner=(b 1) startup=0.29 total=2049882.01 rows=20000 keys=1 disabled=1
+LOG:  TRACE rejected kind=join rels=(b 1 2 4) type=NestLoop outer=(b 2 4) inner=(b 1) startup=0.29 total=1800149.01 rows=20000 keys=1 disabled=1
+LOG:  TRACE evict kind=join rels=(b 1 2 4) type=HashJoin outer=(b 4) inner=(b 1 2) startup=181.18 total=765.18 rows=20000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2 4) type=HashJoin outer=(b 2 4) inner=(b 1) startup=168.00 total=582.27 rows=20000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=MergeJoin outer=(b 1) inner=(b 2 4) startup=1995.65 total=2048.14 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=NestLoop outer=(b 1) inner=(b 2 4) startup=140.50 total=361700.00 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=NestLoop outer=(b 1) inner=(b 2 4) startup=140.50 total=50567.04 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=NestLoop outer=(b 1) inner=(b 2 4) startup=140.78 total=361728.28 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=NestLoop outer=(b 1) inner=(b 2 4) startup=140.78 total=50595.32 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=MergeJoin outer=(b 1) inner=(b 2 4) startup=1931.10 total=2024.09 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4) type=HashJoin outer=(b 1) inner=(b 2 4) startup=752.04 total=769.54 rows=0 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 2 4 6) type=MergeJoin outer=(b 2 4) inner=(b 6) startup=2750.21 total=2950.21 rows=10000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=NestLoop outer=(b 2 4) inner=(b 6) startup=140.50 total=3100502.04 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=NestLoop outer=(b 2 4) inner=(b 6) startup=140.50 total=500682.04 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=NestLoop outer=(b 2 4) inner=(b 6) startup=0.29 total=4600430.91 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=NestLoop outer=(b 2 4) inner=(b 6) startup=0.29 total=2000610.91 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=MergeJoin outer=(b 2 4) inner=(b 6) startup=819.68 total=751135.00 rows=0 keys=0 disabled=1
+LOG:  TRACE evict kind=join rels=(b 2 4 6) type=MergeJoin outer=(b 2 4) inner=(b 6) startup=2750.21 total=2950.21 rows=10000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 2 4 6) type=HashJoin outer=(b 2 4) inner=(b 6) startup=420.50 total=957.04 rows=10000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=MergeJoin outer=(b 6) inner=(b 2 4) startup=2750.20 total=2800.20 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=NestLoop outer=(b 6) inner=(b 2 4) startup=140.50 total=3615740.50 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=NestLoop outer=(b 6) inner=(b 2 4) startup=140.50 total=500707.04 rows=0 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 2 4 6) type=HashJoin outer=(b 6) inner=(b 2 4) startup=752.04 total=1044.54 rows=10000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=MergeJoin outer=(b 4 6) inner=(b 2) startup=1789.83 total=1827.33 rows=0 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 2 4 6) type=NestLoop outer=(b 4 6) inner=(b 2) startup=559.00 total=1405459.36 rows=10000 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 2 4 6) type=NestLoop outer=(b 4 6) inner=(b 2) startup=559.00 total=750680.81 rows=10000 keys=0 disabled=0
+LOG:  TRACE evict kind=join rels=(b 2 4 6) type=HashJoin outer=(b 2 4) inner=(b 6) startup=420.50 total=957.04 rows=10000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 2 4 6) type=HashJoin outer=(b 4 6) inner=(b 2) startup=699.50 total=907.02 rows=10000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=MergeJoin outer=(b 2) inner=(b 4 6) startup=1789.83 total=1827.33 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=NestLoop outer=(b 2) inner=(b 4 6) startup=559.00 total=906887.00 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=NestLoop outer=(b 2) inner=(b 4 6) startup=559.00 total=125843.25 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=NestLoop outer=(b 2) inner=(b 4 6) startup=559.28 total=906979.28 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=NestLoop outer=(b 2) inner=(b 4 6) startup=559.28 total=125935.53 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=MergeJoin outer=(b 2) inner=(b 4 6) startup=1404.92 total=1599.92 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 2 4 6) type=HashJoin outer=(b 2) inner=(b 4 6) startup=865.25 total=955.75 rows=0 keys=0 disabled=0
+LOG:  TRACE survivor kind=join rels=(b 1 2 4) type=HashJoin outer=(b 2 4) inner=(b 1) startup=168.00 total=582.27 rows=20000 keys=0 disabled=0
+LOG:  TRACE survivor kind=join rels=(b 1 2 4) type=NestLoop outer=(b 4) inner=(b 1 2) startup=27.79 total=1500771.47 rows=20000 keys=1 disabled=1
+LOG:  TRACE survivor kind=join rels=(b 2 4 6) type=HashJoin outer=(b 4 6) inner=(b 2) startup=699.50 total=907.02 rows=10000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2 4 6) type=MergeJoin outer=(b 1 2 4) inner=(b 6) startup=2830.43 total=3030.43 rows=10000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 1 2 4) inner=(b 6) startup=168.00 total=3100582.27 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 1 2 4) inner=(b 6) startup=168.00 total=500762.27 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 1 2 4) inner=(b 6) startup=27.79 total=4600771.47 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 1 2 4) inner=(b 6) startup=27.79 total=2000951.47 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=MergeJoin outer=(b 1 2 4) inner=(b 6) startup=847.18 total=751319.05 rows=0 keys=0 disabled=1
+LOG:  TRACE evict kind=join rels=(b 1 2 4 6) type=MergeJoin outer=(b 1 2 4) inner=(b 6) startup=2830.43 total=3030.43 rows=10000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2 4 6) type=HashJoin outer=(b 1 2 4) inner=(b 6) startup=448.00 total=1037.27 rows=10000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=MergeJoin outer=(b 6) inner=(b 1 2 4) startup=2830.43 total=2880.43 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 6) inner=(b 1 2 4) startup=168.00 total=4142993.00 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 6) inner=(b 1 2 4) startup=168.00 total=500787.27 rows=0 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 1 2 4 6) type=HashJoin outer=(b 6) inner=(b 1 2 4) startup=832.27 total=1124.77 rows=10000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=MergeJoin outer=(b 2 4 6) inner=(b 1) startup=1636.24 total=1663.73 rows=0 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 2 4 6) inner=(b 1) startup=699.50 total=275632.57 rows=10000 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 2 4 6) inner=(b 1) startup=699.50 total=150774.82 rows=10000 keys=0 disabled=0
+LOG:  TRACE evict kind=join rels=(b 1 2 4 6) type=HashJoin outer=(b 1 2 4) inner=(b 6) startup=448.00 total=1037.27 rows=10000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2 4 6) type=HashJoin outer=(b 2 4 6) inner=(b 1) startup=727.00 total=960.88 rows=10000 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=MergeJoin outer=(b 1) inner=(b 2 4 6) startup=1636.24 total=1663.73 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 1) inner=(b 2 4 6) startup=699.50 total=208236.75 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 1) inner=(b 2 4 6) startup=699.50 total=25947.02 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 1) inner=(b 2 4 6) startup=699.77 total=208265.02 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 1) inner=(b 2 4 6) startup=699.77 total=25975.30 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=MergeJoin outer=(b 1) inner=(b 2 4 6) startup=1571.69 total=1639.68 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=HashJoin outer=(b 1) inner=(b 2 4 6) startup=1032.02 total=1049.52 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=MergeJoin outer=(b 1 2) inner=(b 4 6) startup=1830.51 total=1868.01 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 1 2) inner=(b 4 6) startup=586.50 total=906927.68 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 1 2) inner=(b 4 6) startup=586.50 total=125883.93 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 1 2) inner=(b 4 6) startup=559.28 total=981921.93 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 1 2) inner=(b 4 6) startup=559.28 total=200878.18 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=MergeJoin outer=(b 1 2) inner=(b 4 6) startup=1404.92 total=76542.57 rows=0 keys=0 disabled=1
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=HashJoin outer=(b 1 2) inner=(b 4 6) startup=892.75 total=996.43 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=MergeJoin outer=(b 4 6) inner=(b 1 2) startup=1830.51 total=1868.01 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 4 6) inner=(b 1 2) startup=586.50 total=912574.00 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2 4 6) type=NestLoop outer=(b 4 6) inner=(b 1 2) startup=586.50 total=125871.43 rows=0 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 1 2 4 6) type=HashJoin outer=(b 4 6) inner=(b 1 2) startup=740.18 total=1058.93 rows=10000 keys=0 disabled=0
+LOG:  TRACE survivor kind=join rels=(b 1 2 4 6) type=HashJoin outer=(b 2 4 6) inner=(b 1) startup=727.00 total=960.88 rows=10000 keys=0 disabled=0
+LOG:  TRACE survivor kind=join rels=(b 1 2 4 6) type=HashJoin outer=(b 2 4 6) inner=(b 1) startup=727.00 total=960.88 rows=10000 keys=0 disabled=0
+LOG:  TRACE kept kind=upper rels=(b) type=HashJoin outer=(b 2 4 6) inner=(b 1) startup=727.00 total=960.88 rows=10000 keys=0 disabled=0
+LOG:  TRACE survivor kind=upper rels=(b) type=HashJoin outer=(b 2 4 6) inner=(b 1) startup=727.00 total=960.88 rows=10000 keys=0 disabled=0
+                                   QUERY PLAN                                   
+--------------------------------------------------------------------------------
+ Hash Join  (cost=727.00..960.88 rows=10000 width=44)
+   Hash Cond: (b.a_id = a.id)
+   ->  Hash Join  (cost=699.50..907.02 rows=10000 width=36)
+         Hash Cond: (c.b_id = b.id)
+         ->  Hash Join  (cost=559.00..740.25 rows=10000 width=24)
+               Hash Cond: (d.c_id = c.id)
+               ->  Seq Scan on d  (cost=0.00..155.00 rows=10000 width=12)
+               ->  Hash  (cost=309.00..309.00 rows=20000 width=12)
+                     ->  Seq Scan on c  (cost=0.00..309.00 rows=20000 width=12)
+         ->  Hash  (cost=78.00..78.00 rows=5000 width=12)
+               ->  Seq Scan on b  (cost=0.00..78.00 rows=5000 width=12)
+   ->  Hash  (cost=15.00..15.00 rows=1000 width=8)
+         ->  Seq Scan on a  (cost=0.00..15.00 rows=1000 width=8)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(14 rows)
+

@@ -1,0 +1,41 @@
+LOG:  TRACE baserel relid=1 name=a
+LOG:  TRACE kept kind=base rels=(b 1) type=SeqScan outer=- inner=- startup=0.00 total=17.50 rows=100 keys=0 disabled=0
+LOG:  TRACE kept kind=base rels=(b 1) type=IndexScan outer=- inner=- startup=0.28 total=45.77 rows=100 keys=1 disabled=0
+LOG:  TRACE kept kind=base rels=(b 1) type=IndexScan outer=- inner=- startup=0.28 total=0.30 rows=100 keys=1 disabled=0
+LOG:  TRACE rejected kind=base rels=(b 1) type=BitmapHeapScan outer=- inner=- startup=0.31 total=4.33 rows=100 keys=0 disabled=0
+LOG:  TRACE survivor kind=base rels=(b 1) type=IndexScan outer=- inner=- startup=0.28 total=0.30 rows=100 keys=1 disabled=0
+LOG:  TRACE survivor kind=base rels=(b 1) type=SeqScan outer=- inner=- startup=0.00 total=17.50 rows=100 keys=0 disabled=0
+LOG:  TRACE survivor kind=base rels=(b 1) type=IndexScan outer=- inner=- startup=0.28 total=45.77 rows=100 keys=1 disabled=0
+LOG:  TRACE baserel relid=2 name=b
+LOG:  TRACE kept kind=base rels=(b 2) type=SeqScan outer=- inner=- startup=0.00 total=78.00 rows=5000 keys=0 disabled=0
+LOG:  TRACE survivor kind=base rels=(b 2) type=SeqScan outer=- inner=- startup=0.00 total=78.00 rows=5000 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2) type=MergeJoin outer=(b 1) inner=(b 2) startup=406.01 total=436.51 rows=500 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 1) inner=(b 2) startup=0.00 total=7817.50 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 1) inner=(b 2) startup=0.00 total=1358.00 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 1) inner=(b 2) startup=0.28 total=7845.77 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 1) inner=(b 2) startup=0.28 total=1386.28 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=MergeJoin outer=(b 1) inner=(b 2) startup=385.47 total=443.47 rows=0 keys=0 disabled=0
+LOG:  TRACE evict kind=join rels=(b 1 2) type=MergeJoin outer=(b 1) inner=(b 2) startup=406.01 total=436.51 rows=500 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2) type=HashJoin outer=(b 1) inner=(b 2) startup=140.50 total=163.88 rows=500 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=MergeJoin outer=(b 2) inner=(b 1) startup=406.01 total=418.76 rows=0 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.00 total=93736.11 rows=500 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.28 total=1453.00 rows=0 keys=0 disabled=0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.29 total=403.22 rows=0 keys=0 disabled=0
+LOG:  TRACE rejected kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.00 total=7588.40 rows=500 keys=0 disabled=0
+LOG:  TRACE evict kind=join rels=(b 1 2) type=HashJoin outer=(b 1) inner=(b 2) startup=140.50 total=163.88 rows=500 keys=0 disabled=0
+LOG:  TRACE kept kind=join rels=(b 1 2) type=HashJoin outer=(b 2) inner=(b 1) startup=18.75 total=109.93 rows=500 keys=0 disabled=0
+LOG:  TRACE survivor kind=join rels=(b 1 2) type=HashJoin outer=(b 2) inner=(b 1) startup=18.75 total=109.93 rows=500 keys=0 disabled=0
+LOG:  TRACE survivor kind=join rels=(b 1 2) type=HashJoin outer=(b 2) inner=(b 1) startup=18.75 total=109.93 rows=500 keys=0 disabled=0
+LOG:  TRACE kept kind=upper rels=(b) type=HashJoin outer=(b 2) inner=(b 1) startup=18.75 total=109.93 rows=500 keys=0 disabled=0
+LOG:  TRACE survivor kind=upper rels=(b) type=HashJoin outer=(b 2) inner=(b 1) startup=18.75 total=109.93 rows=500 keys=0 disabled=0
+                           QUERY PLAN                           
+----------------------------------------------------------------
+ Hash Join  (cost=18.75..109.93 rows=500 width=20)
+   Hash Cond: (b.a_id = a.id)
+   ->  Seq Scan on b  (cost=0.00..78.00 rows=5000 width=12)
+   ->  Hash  (cost=17.50..17.50 rows=100 width=8)
+         ->  Seq Scan on a  (cost=0.00..17.50 rows=100 width=8)
+               Filter: (x = 3)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(7 rows)
+
