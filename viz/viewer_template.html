@@ -1,0 +1,467 @@
+<title>Search Space Viewer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a header with query + view controls, then PostgreSQL | Calcite side by side
+   (stacked on phones). Lattice columns = number of tables joined. */
+:root {
+  --bg: #f6f7f8;
+  --panel: #ffffff;
+  --ink: #15181c;
+  --ink-2: #4a5059;
+  --ink-3: #7b828c;
+  --line: #dde1e6;
+  --line-2: #c4cad1;
+  --grid: #eceef1;
+  --pg: #2a78d6;
+  --cal: #eb6834;
+  --alive: #1baf7a;
+  --evicted: #eda100;
+  --rejected: #e87ba4;
+  --precheck: #6250d6;
+  --logical: #b9c0c8;
+  --chosen: #15181c;
+  --cross: #e34948;
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121417; --panel: #1a1d21; --ink: #eef0f2; --ink-2: #b6bcc4; --ink-3: #868d97;
+    --line: #2c3137; --line-2: #3d444c; --grid: #22262b;
+    --pg: #3987e5; --cal: #d95926; --alive: #199e70; --evicted: #c98500; --rejected: #d55181;
+    --precheck: #9085e9; --logical: #4a525b; --chosen: #eef0f2; --cross: #e66767;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121417; --panel: #1a1d21; --ink: #eef0f2; --ink-2: #b6bcc4; --ink-3: #868d97;
+  --line: #2c3137; --line-2: #3d444c; --grid: #22262b;
+  --pg: #3987e5; --cal: #d95926; --alive: #199e70; --evicted: #c98500; --rejected: #d55181;
+  --precheck: #9085e9; --logical: #4a525b; --chosen: #eef0f2; --cross: #e66767;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body {
+  color: var(--ink); font: 14px/1.45 var(--font-ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 40px;
+}
+.wrap { max-width: 1480px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.sub { color: var(--ink-2); margin: 0; max-width: 80ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.group > .lab { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-right: 6px; }
+button.chip {
+  font: 500 13px var(--font-ui); color: var(--ink-2); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer;
+}
+button.chip:hover { border-color: var(--line-2); color: var(--ink); }
+button.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+button.chip:focus-visible, input:focus-visible, .box:focus-visible { outline: 2px solid var(--pg); outline-offset: 2px; }
+.chip small { font-family: var(--font-mono); font-size: 11px; opacity: 0.75; margin-left: 4px; }
+.sql { font: 12.5px/1.5 var(--font-mono); color: var(--ink-2); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 6px; padding: 8px 10px; overflow-x: auto; white-space: pre; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 980px) { .cols { grid-template-columns: 1fr; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; min-width: 0;
+  display: flex; flex-direction: column; gap: 10px; }
+.ph { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; justify-content: space-between; }
+.ph h2 { font-size: 15px; margin: 0; display: flex; align-items: center; gap: 8px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 12px var(--font-mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.stats b { color: var(--ink); font-weight: 600; }
+.scroll { overflow-x: auto; overflow-y: hidden; }
+svg text { font-family: var(--font-ui); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 10px; border-radius: 2px; display: inline-block; }
+.note { font-size: 12.5px; color: var(--ink-2); margin: 0; }
+.detail { border-top: 1px solid var(--line); padding-top: 10px; min-width: 0; }
+.detail h3 { font-size: 13px; margin: 0 0 6px; }
+.tbl { overflow-x: auto; max-height: 340px; overflow-y: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 12px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th { font-weight: 600; color: var(--ink-3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; top: 0; background: var(--panel); }
+td.num { text-align: right; font-family: var(--font-mono); }
+.tag { font: 600 10.5px var(--font-ui); padding: 1px 6px; border-radius: 4px; color: #fff; letter-spacing: 0.02em; }
+.stepbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.stepbar input[type=range] { flex: 1 1 260px; min-width: 0; accent-color: var(--ink); }
+.evt { font: 12px var(--font-mono); color: var(--ink-2); min-height: 2.9em; overflow-wrap: anywhere; }
+.tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font: 12px/1.4 var(--font-ui);
+  padding: 6px 8px; border-radius: 6px; max-width: 280px; z-index: 20; }
+.empty { color: var(--ink-3); font-style: italic; font-size: 13px; }
+.box { cursor: pointer; }
+.kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.kpi > div { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.kpi .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); }
+.kpi .v { font: 600 20px var(--font-mono); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Search Space Viewer</h1>
+    <p class="sub">How PostgreSQL (System R style dynamic programming) and Calcite (Volcano memo) explore join plans for the same query on our test tables a–e. Built from <code>traces/</code> by <code>viz/build_viewer.py</code>.</p>
+    <div class="controls">
+      <div class="group" id="qbtns"><span class="lab">Query</span></div>
+      <div class="group" id="vbtns"><span class="lab">View</span></div>
+      <div class="group" id="mbtns"><span class="lab">PostgreSQL</span></div>
+    </div>
+    <div class="sql" id="sql"></div>
+  </header>
+  <main id="main"></main>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const S = { q: DATA.queries.find(x => x.q === "Q6") ? "Q6" : DATA.queries[0].q, view: "lattice", mode: "pg", p: 1000, sel: null, playing: null };
+try { const h = location.hash.replace("#", ""); if (["lattice", "steps", "counts"].includes(h)) S.view = h; } catch (e) {}
+
+const $ = (s, el = document) => el.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs = {}, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function h(tag, attrs = {}, html) { const e = document.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; }
+const fmt = v => v == null ? "–" : (Math.abs(v) >= 1e5 ? v.toExponential(2) : (+v).toFixed(2));
+const fmtR = v => v == null ? "–" : (v >= 1e5 ? v.toExponential(1) : Math.round(v).toString());
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const Q = () => DATA.queries.find(x => x.q === S.q);
+const setLabel = s => "{" + s.split(",").join(",") + "}";
+
+/* ---------- tooltip ---------- */
+const tip = $("#tip");
+function showTip(ev, html) { tip.innerHTML = html; tip.hidden = false; moveTip(ev); }
+function moveTip(ev) { const x = Math.min(ev.clientX + 14, innerWidth - 300); tip.style.left = x + "px"; tip.style.top = (ev.clientY + 14) + "px"; }
+function hideTip() { tip.hidden = true; }
+
+/* ---------- table sets, join graph ---------- */
+function allSubsets(tables) {
+  const out = [];
+  for (let m = 1; m < (1 << tables.length); m++) { const s = tables.filter((_, i) => m & (1 << i)); out.push(s.join(",")); }
+  return out;
+}
+function connected(set, joins) {
+  const t = set.split(","); if (t.length === 1) return true;
+  const seen = new Set([t[0]]); let grew = true;
+  while (grew) { grew = false; for (const [x, y] of joins) { if (t.includes(x) && t.includes(y)) { if (seen.has(x) && !seen.has(y)) { seen.add(y); grew = true; } if (seen.has(y) && !seen.has(x)) { seen.add(x); grew = true; } } } }
+  return seen.size === t.length;
+}
+function queryTables(q) { return (q.pg && q.pg.tables) || [...new Set(Object.values(q.cal.sets).flatMap(s => s.split(",")))].sort(); }
+
+/* ---------- PostgreSQL aggregation up to a step ---------- */
+function pgState(pg, limit) {
+  const per = {}; const edges = new Map(); const active = {};
+  const n = limit == null ? pg.ev.length : limit;
+  for (let i = 0; i < n; i++) {
+    const [s, op, ins, st, t, r, k, d, x] = pg.ev[i];
+    const a = per[s] || (per[s] = { P: 0, R: 0, E: 0, K: 0 });
+    a[x]++;
+    if (ins.length === 2) { const key = ins[0] + ">" + s, key2 = ins[1] + ">" + s; edges.set(key, (edges.get(key) || 0) + 1); edges.set(key2, (edges.get(key2) || 0) + 1); }
+    const list = active[s] || (active[s] = []);
+    if (x === "K") list.push({ op, ins, st, t, r, k, d });
+    if (x === "E") { const j = list.findIndex(p => p.op === op && p.t === t && p.st === st && p.ins.join("|") === ins.join("|")); if (j >= 0) list.splice(j, 1); }
+  }
+  for (const s in per) per[s].alive = (active[s] || []).length;
+  return { per, edges, active };
+}
+function pgBest(active, s) { const l = active[s]; if (!l || !l.length) return null; return [...l].sort((a, b) => (a.d - b.d) || (a.t - b.t))[0]; }
+function pgTreeAt(active, s, depth = 0) {
+  const b = pgBest(active, s); if (!b || depth > 12) return { o: "(none yet)", s, c: [] };
+  return { o: b.op, s, st: b.st, t: b.t, r: b.r, c: b.ins.map(i => pgTreeAt(active, i, depth + 1)) };
+}
+
+/* ---------- Calcite aggregation up to a step ---------- */
+function calState(cal, limit) {
+  const n = limit == null ? cal.order.length : limit;
+  const seen = new Set(cal.order.slice(0, n));
+  const byId = new Map(cal.nodes.map(x => [x[0], x]));
+  const per = {}; const edges = new Map();
+  for (const id of seen) {
+    const nd = byId.get(id); if (!nd) continue;
+    const [nid, op, phys, set, ins, st, t, r, chosen, win] = nd;
+    const ts = cal.sets[set]; if (!ts) continue;
+    const a = per[ts] || (per[ts] = { sets: new Set(), L: 0, Ph: 0, W: 0 });
+    a.sets.add(set); if (phys) a.Ph++; else a.L++;
+    if (limit == null && win) a.W++;
+    if (ins.length === 2) for (const i of ins) { const its = cal.sets[i]; if (its && its !== ts) { const key = its + ">" + ts; edges.set(key, (edges.get(key) || 0) + 1); } }
+  }
+  for (const k in per) per[k].nsets = per[k].sets.size;
+  return { per, edges };
+}
+
+/* ---------- plan tree helpers ---------- */
+function treeSets(t, out = new Set()) {
+  if (!t) return out;
+  if (t.s) out.add(t.s);
+  (t.c || []).forEach(c => treeSets(c, out)); return out;
+}
+function calTreeSets(t) {
+  const out = new Set();
+  (function walk(n) { if (!n) return ""; if (n.tb) { out.add(n.tb); return n.tb; }
+    const parts = (n.c || []).map(walk).filter(Boolean).join(",").split(",").filter(Boolean);
+    const s = [...new Set(parts)].sort().join(","); if (s) out.add(s); return s; })(t);
+  return out;
+}
+
+/* ---------- lattice drawing ---------- */
+const BW = 150, BH = 62, CG = 64, RG = 12, PADT = 26;
+function drawLattice(container, q, kind, limit, compact) {
+  const tables = queryTables(q);
+  const levels = []; for (const s of allSubsets(tables)) { const L = s.split(",").length; (levels[L - 1] = levels[L - 1] || []).push(s); }
+  const maxRows = Math.max(...levels.map(l => l.length));
+  const W = levels.length * BW + (levels.length - 1) * CG + 8, H = PADT + maxRows * (BH + RG) + 4;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", style: `max-width:${W}px;min-width:${Math.min(W, 560)}px;height:auto;display:block`, role: "img", "aria-label": `${kind === "pg" ? "PostgreSQL" : "Calcite"} search lattice for ${q.q}` });
+  const pos = {};
+  levels.forEach((lv, i) => {
+    const x = 4 + i * (BW + CG); const y0 = PADT + (maxRows - lv.length) * (BH + RG) / 2;
+    const t = el("text", { x: x + BW / 2, y: 14, "text-anchor": "middle", "font-size": 11, fill: css("--ink-3"), "letter-spacing": "0.06em" }, svg);
+    t.textContent = `${i + 1} TABLE${i ? "S" : ""}`;
+    lv.forEach((s, j) => pos[s] = { x, y: y0 + j * (BH + RG) });
+  });
+  const pg = kind === "pg" ? q[S.mode] : null, cal = kind === "cal" ? q.cal : null;
+  const st = pg ? pgState(pg, limit) : calState(cal, limit);
+  let chosen = new Set();
+  if (limit == null) chosen = pg ? treeSets(pg.plan) : calTreeSets(cal.plan);
+  const accent = css(kind === "pg" ? "--pg" : "--cal");
+  // edges
+  const eg = el("g", {}, svg);
+  for (const [key, cnt] of st.edges) {
+    const [a, b] = key.split(">"); const A = pos[a], B = pos[b]; if (!A || !B) continue;
+    const on = chosen.has(a) && chosen.has(b);
+    const x1 = A.x + BW, y1 = A.y + BH / 2, x2 = B.x, y2 = B.y + BH / 2, mx = (x1 + x2) / 2;
+    el("path", { d: `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`, fill: "none", stroke: on ? accent : css("--line-2"), "stroke-width": on ? 2.5 : 1, opacity: on ? 1 : 0.7 }, eg);
+  }
+  // boxes
+  for (const s in pos) {
+    const { x, y } = pos[s]; const a = st.per[s]; const isConn = connected(s, q.joins);
+    const g = el("g", { class: "box", tabindex: 0, role: "button", "aria-label": `Set ${setLabel(s)}` }, svg);
+    const on = chosen.has(s);
+    el("rect", { x, y, width: BW, height: BH, rx: 6, fill: css("--panel"), stroke: on ? css("--chosen") : (a ? css("--line-2") : css("--line")), "stroke-width": on ? 2 : 1, "stroke-dasharray": a ? "" : "4 3" }, g);
+    const lab = el("text", { x: x + 8, y: y + 16, "font-size": 12.5, "font-weight": 600, fill: a ? css("--ink") : css("--ink-3"), "font-family": css("--font-mono") }, g);
+    lab.textContent = setLabel(s);
+    if (!isConn) { const c = el("text", { x: x + BW - 8, y: y + 16, "text-anchor": "end", "font-size": 10, fill: css("--cross"), "font-weight": 600 }, g); c.textContent = "no join cond."; }
+    if (!a) { const t = el("text", { x: x + 8, y: y + 40, "font-size": 11.5, fill: css("--ink-3") }, g); t.textContent = "not explored"; }
+    else {
+      let segs, total, line;
+      if (pg) {
+        const alive = limit == null ? (pg.retained[s] ?? a.alive) : a.alive;
+        segs = [["--precheck", a.P], ["--rejected", a.R], ["--evicted", a.E], ["--alive", alive]];
+        total = a.P + a.R + a.K; line = `${total} costed · ${alive} kept`;
+      } else {
+        const win = limit == null ? a.W : 0;
+        segs = [["--logical", a.L], ["--cal", a.Ph - win], ["--alive", win]];
+        total = a.L + a.Ph; line = `${total} node${total === 1 ? "" : "s"} · ${a.nsets} RelSet${a.nsets > 1 ? "s" : ""}`;
+      }
+      const sum = segs.reduce((m, z) => m + z[1], 0) || 1; let bx = x + 8; const bw = BW - 16;
+      segs.forEach(([c, v]) => { if (!v) return; const w = Math.max(2, bw * v / sum - 2); el("rect", { x: bx, y: y + 25, width: w, height: 9, rx: 2, fill: css(c) }, g); bx += w + 2; });
+      const t = el("text", { x: x + 8, y: y + 52, "font-size": 11.5, fill: css("--ink-2"), "font-family": css("--font-mono") }, g); t.textContent = line;
+    }
+    const tipHtml = () => {
+      if (!a) return `<b>${setLabel(s)}</b><br>${isConn ? "never built" : "never built: no join condition between these tables"}`;
+      if (pg) { const alive = limit == null ? (pg.retained[s] ?? a.alive) : a.alive; return `<b>${setLabel(s)}</b><br>pruned before building: ${a.P}<br>rejected on arrival: ${a.R}<br>evicted later: ${a.E}<br>kept: ${alive}`; }
+      return `<b>${setLabel(s)}</b><br>RelSets: ${a.nsets}<br>logical nodes: ${a.L}<br>physical nodes: ${a.Ph}` + (limit == null ? `<br>winners: ${a.W}` : "") + (isConn ? "" : "<br><b>cross product</b>: PostgreSQL never builds this set");
+    };
+    g.addEventListener("mousemove", e => showTip(e, tipHtml())); g.addEventListener("mouseleave", hideTip);
+    const pick = () => { S.sel = { kind, set: s }; renderDetail(); };
+    g.addEventListener("click", pick); g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+  }
+  container.appendChild(svg);
+}
+
+/* ---------- plan tree drawing ---------- */
+function drawTree(container, tree, kind) {
+  if (!tree) { container.appendChild(h("p", { class: "empty" }, "No complete plan yet at this step.")); return; }
+  const NW = 136, NH = 46, HG = 14, VG = 26;
+  let leaf = 0; const nodes = [];
+  (function lay(n, d) {
+    const kids = (n.c || []).filter(Boolean);
+    let x;
+    if (!kids.length) x = leaf++ * (NW + HG);
+    else { const xs = kids.map(c => lay(c, d + 1)); x = (xs[0] + xs[xs.length - 1]) / 2; }
+    nodes.push({ n, d, x, kids: kids.length ? kids : [] }); n._x = x; n._d = d; return x;
+  })(tree, 0);
+  const depth = Math.max(...nodes.map(z => z.d)) + 1;
+  const W = Math.max(leaf, 1) * (NW + HG) - HG + 4, H = depth * (NH + VG) - VG + 4;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: "img", "aria-label": "plan tree" });
+  const accent = css(kind === "pg" ? "--pg" : "--cal");
+  for (const z of nodes) for (const c of z.kids) {
+    el("line", { x1: z.x + NW / 2 + 2, y1: z.d * (NH + VG) + NH + 2, x2: c._x + NW / 2 + 2, y2: c._d * (NH + VG) + 2, stroke: css("--line-2"), "stroke-width": 1.5 }, svg);
+  }
+  for (const z of nodes) {
+    const x = z.x + 2, y = z.d * (NH + VG) + 2; const n = z.n;
+    const isJoin = /Join|Loop/.test(n.o || "");
+    el("rect", { x, y, width: NW, height: NH, rx: 5, fill: css("--panel"), stroke: isJoin ? accent : css("--line-2"), "stroke-width": isJoin ? 1.8 : 1 }, svg);
+    const t1 = el("text", { x: x + 8, y: y + 17, "font-size": 12, "font-weight": 600, fill: css("--ink") }, svg);
+    const name = (n.o || "?") + (n.tb ? " " + n.tb : (!isJoin && n.s ? " " + n.s : ""));
+    t1.textContent = name.length > 20 ? name.slice(0, 19) + "…" : name;
+    const t2 = el("text", { x: x + 8, y: y + 35, "font-size": 11, fill: css("--ink-2"), "font-family": css("--font-mono") }, svg);
+    t2.textContent = n.t != null ? `${fmt(n.t)} · ${fmtR(n.r)} rows` : "";
+  }
+  container.appendChild(svg);
+}
+
+/* ---------- views ---------- */
+function legendPg() { return `<div class="legend"><span><i class="sw" style="background:var(--precheck)"></i>pruned before building (precheck)</span><span><i class="sw" style="background:var(--rejected)"></i>rejected on arrival</span><span><i class="sw" style="background:var(--evicted)"></i>evicted later</span><span><i class="sw" style="background:var(--alive)"></i>kept</span></div>`; }
+function legendCal(final) { return `<div class="legend"><span><i class="sw" style="background:var(--logical)"></i>logical node</span><span><i class="sw" style="background:var(--cal)"></i>physical node</span>${final ? '<span><i class="sw" style="background:var(--alive)"></i>winner (best in its RelSet)</span>' : ""}</div>`; }
+
+function pgStats(pg) { const s = pg.summary; return `<div class="stats"><span>costed <b>${s.considered}</b></span><span>built <b>${s.built}</b></span><span>precheck <b>${s.pruned_precheck}</b></span><span>rejected <b>${s.pruned_on_arrival}</b></span><span>evicted <b>${s.evicted_later}</b></span><span>kept <b>${s.retained}</b></span><span>sets <b>${s.sets_built}</b></span></div>`; }
+function calStats(c) { const s = c.summary; return `<div class="stats"><span>nodes <b>${s.registered}</b></span><span>logical <b>${s.registered_logical}</b></span><span>physical <b>${s.registered_physical}</b></span><span>rule firings <b>${s.rules_produced}</b></span><span>RelSets <b>${s.relsets}</b></span><span>winners <b>${s.winners}</b></span><span>in plan <b>${s.chosen}</b></span></div>`; }
+
+function viewLattice(main) {
+  const q = Q(); const cols = h("div", { class: "cols" });
+  const pg = q[S.mode];
+  const p1 = h("section", { class: "panel" });
+  p1.innerHTML = `<div class="ph"><h2><i class="dot" style="background:var(--pg)"></i>PostgreSQL · dynamic programming</h2></div>`;
+  if (pg) {
+    p1.insertAdjacentHTML("beforeend", pgStats(pg) + legendPg());
+    const sc = h("div", { class: "scroll" }); drawLattice(sc, q, "pg", null); p1.appendChild(sc);
+    p1.insertAdjacentHTML("beforeend", `<p class="note">Builds level by level: every 1-table set, then every joinable pair, and so on. Sets with no join condition between them are never built. Thick outline: sets in the final plan. Click a box for its paths.</p>`);
+  } else p1.insertAdjacentHTML("beforeend", `<p class="empty">No PostgreSQL trace for ${q.q}.</p>`);
+  const p2 = h("section", { class: "panel" });
+  p2.innerHTML = `<div class="ph"><h2><i class="dot" style="background:var(--cal)"></i>Calcite · Volcano memo</h2></div>`;
+  if (q.cal) {
+    p2.insertAdjacentHTML("beforeend", calStats(q.cal) + legendCal(true));
+    const sc = h("div", { class: "scroll" }); drawLattice(sc, q, "cal", null); p2.appendChild(sc);
+    p2.insertAdjacentHTML("beforeend", `<p class="note">Rules rewrite whole plans, and every equivalent expression stays in the memo, grouped into RelSets. One table set can hold several RelSets (column orders differ after a commute). Click a box for its nodes.</p>`);
+  } else p2.insertAdjacentHTML("beforeend", `<p class="empty">No Calcite trace for ${q.q}.</p>`);
+  cols.append(p1, p2); main.appendChild(cols);
+  const plans = h("div", { class: "cols" });
+  const t1 = h("section", { class: "panel" }, `<div class="ph"><h2>PostgreSQL chosen plan</h2></div>`); const s1 = h("div", { class: "scroll" }); drawTree(s1, pg && pg.plan, "pg"); t1.appendChild(s1);
+  const t2 = h("section", { class: "panel" }, `<div class="ph"><h2>Calcite chosen plan</h2></div>`); const s2 = h("div", { class: "scroll" }); drawTree(s2, q.cal && q.cal.plan, "cal"); t2.appendChild(s2);
+  plans.append(t1, t2); main.appendChild(plans);
+  const det = h("section", { class: "panel detail", id: "detail" }); main.appendChild(det); renderDetail();
+}
+
+function renderDetail() {
+  const det = $("#detail"); if (!det) return; const q = Q();
+  if (!S.sel) { det.innerHTML = `<p class="empty">Click a box in either lattice to list what happened in that set of tables.</p>`; return; }
+  const { kind, set } = S.sel;
+  if (kind === "pg") {
+    const pg = q[S.mode]; const rows = pg.ev.map((e, i) => [i + 1, ...e]).filter(e => e[1] === set);
+    const name = { P: ["precheck", "--precheck"], R: ["rejected", "--rejected"], E: ["evicted", "--evicted"], K: ["kept", "--alive"] };
+    det.innerHTML = `<h3>PostgreSQL · ${setLabel(set)} · ${rows.length} events</h3>` + (rows.length ? `<div class="tbl"><table><thead><tr><th>Step</th><th>Path</th><th>Outer ⋈ inner</th><th>Startup</th><th>Total</th><th>Rows</th><th>Sorted</th><th>Result</th></tr></thead><tbody>${rows.map(r => `<tr><td class="num">${r[0]}</td><td>${r[2]}${r[8] ? " (disabled)" : ""}</td><td>${r[3].map(setLabel).join(" ⋈ ") || "–"}</td><td class="num">${fmt(r[4])}</td><td class="num">${fmt(r[5])}</td><td class="num">${r[9] === "P" ? "–" : fmtR(r[6])}</td><td>${r[7] ? "yes" : ""}</td><td><span class="tag" style="background:var(${name[r[9]][1]})">${name[r[9]][0]}</span></td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">PostgreSQL never built this set.</p>`);
+  } else {
+    const c = q.cal; const ids = Object.entries(c.sets).filter(([, ts]) => ts === set).map(([id]) => +id);
+    const rows = c.nodes.filter(n => ids.includes(n[3]));
+    det.innerHTML = `<h3>Calcite · ${setLabel(set)} · ${ids.length} RelSet${ids.length === 1 ? "" : "s"}, ${rows.length} nodes</h3>` + (rows.length ? `<div class="tbl"><table><thead><tr><th>Node</th><th>Operator</th><th>RelSet</th><th>Inputs (RelSets)</th><th>Startup</th><th>Total</th><th>Rows</th><th>Made by rule</th><th>Status</th></tr></thead><tbody>${rows.slice(0, 400).map(n => `<tr><td class="num">${n[0]}</td><td>${n[1]}</td><td class="num">${n[3]}</td><td>${n[4].join(", ") || "–"}</td><td class="num">${fmt(n[5])}</td><td class="num">${fmt(n[6])}</td><td class="num">${fmtR(n[7])}</td><td>${n[10]}</td><td>${n[8] ? '<span class="tag" style="background:var(--chosen);color:var(--bg)">in plan</span> ' : ""}${n[9] ? '<span class="tag" style="background:var(--alive)">winner</span>' : ""}</td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">Calcite never built this set.</p>`);
+  }
+}
+
+function viewSteps(main) {
+  const q = Q(); const pg = q[S.mode], cal = q.cal;
+  const bar = h("div", { class: "stepbar" });
+  bar.innerHTML = `<button class="chip" id="play" aria-pressed="false">${S.playing ? "Pause" : "Play"}</button><button class="chip" id="back">◀ step</button><button class="chip" id="fwd">step ▶</button><input type="range" id="slider" min="0" max="1000" value="${S.p}" aria-label="Search progress"><span class="stats" id="pct"></span>`;
+  main.appendChild(bar);
+  main.appendChild(h("p", { class: "note" }, "Both searches play on the same progress scale (0–100% of each optimizer's own steps). Watch the order: PostgreSQL fills the lattice left to right; Calcite jumps between levels as rules fire, and its best plan improves as cheaper alternatives appear."));
+  const cols = h("div", { class: "cols" });
+  const p1 = h("section", { class: "panel" }); const p2 = h("section", { class: "panel" });
+  cols.append(p1, p2); main.appendChild(cols);
+  function paint() {
+    const p = S.p / 1000;
+    $("#pct").innerHTML = `<span>progress <b>${Math.round(p * 100)}%</b></span>`;
+    p1.innerHTML = `<div class="ph"><h2><i class="dot" style="background:var(--pg)"></i>PostgreSQL</h2></div>`;
+    if (pg) {
+      const k = Math.round(p * pg.ev.length); const e = pg.ev[k - 1];
+      const name = { P: "pruned before building", R: "rejected on arrival", E: "evicted (a newer path beat it)", K: "kept" };
+      p1.insertAdjacentHTML("beforeend", `<div class="stats"><span>step <b>${k}</b> / ${pg.ev.length}</span></div><div class="evt">${e ? `${e[1]} for ${setLabel(e[0])}${e[2].length ? " = " + e[2].map(setLabel).join(" ⋈ ") : ""} · cost ${fmt(e[4])} → <b>${name[e[8]]}</b>` : "start"}</div>` + legendPg());
+      const sc = h("div", { class: "scroll" }); drawLattice(sc, q, "pg", k); p1.appendChild(sc);
+      const st = pgState(pg, k); const done = Object.keys(st.active).filter(s => st.active[s].length);
+      const top = done.sort((a, b) => b.split(",").length - a.split(",").length || (pgBest(st.active, a).t - pgBest(st.active, b).t))[0];
+      p1.insertAdjacentHTML("beforeend", `<h3 style="margin:4px 0 0;font-size:13px">Best plan so far ${top ? "for " + setLabel(top) : ""}</h3>`);
+      const t = h("div", { class: "scroll" }); drawTree(t, top ? pgTreeAt(st.active, top) : null, "pg"); p1.appendChild(t);
+    }
+    p2.innerHTML = `<div class="ph"><h2><i class="dot" style="background:var(--cal)"></i>Calcite</h2></div>`;
+    if (cal) {
+      const k = Math.round(p * cal.order.length); const id = cal.order[k - 1]; const nd = cal.nodes.find(n => n[0] === id);
+      p2.insertAdjacentHTML("beforeend", `<div class="stats"><span>step <b>${k}</b> / ${cal.order.length}</span></div><div class="evt">${nd ? `${nd[1]} added to RelSet ${nd[3]} ${setLabel(cal.sets[nd[3]] || "?")} by ${nd[10] || "initial"}` : "start"}</div>` + legendCal(false));
+      const sc = h("div", { class: "scroll" }); drawLattice(sc, q, "cal", k); p2.appendChild(sc);
+      const snap = [...cal.timeline].reverse().find(s => s.step <= k);
+      p2.insertAdjacentHTML("beforeend", `<h3 style="margin:4px 0 0;font-size:13px">Best full plan so far ${snap ? "· total " + fmt(snap.t) : ""} <span class="stats" style="display:inline">(${cal.timeline.filter(s => s.step <= k).length} of ${cal.timeline.length} improvements)</span></h3>`);
+      const t = h("div", { class: "scroll" }); drawTree(t, snap && snap.plan, "cal"); p2.appendChild(t);
+    }
+  }
+  const slider = $("#slider", bar);
+  slider.addEventListener("input", () => { S.p = +slider.value; paint(); });
+  const stepBy = d => { const n = Math.max(pg ? pg.ev.length : 0, cal ? cal.order.length : 0) || 1; S.p = Math.max(0, Math.min(1000, S.p + d * 1000 / n)); slider.value = S.p; paint(); };
+  $("#back", bar).addEventListener("click", () => stepBy(-1)); $("#fwd", bar).addEventListener("click", () => stepBy(1));
+  $("#play", bar).addEventListener("click", () => {
+    if (S.playing) { clearInterval(S.playing); S.playing = null; $("#play").textContent = "Play"; return; }
+    if (S.p >= 1000) S.p = 0;
+    $("#play").textContent = "Pause";
+    S.playing = setInterval(() => { S.p = Math.min(1000, S.p + 8); slider.value = S.p; paint(); if (S.p >= 1000) { clearInterval(S.playing); S.playing = null; $("#play").textContent = "Play"; } }, 60);
+  });
+  paint();
+}
+
+function viewCounts(main) {
+  const qs = DATA.queries;
+  const family = ["Q1", "Q3", "Q4", "Q6", "Q7"].map(id => qs.find(x => x.q === id)).filter(Boolean);
+  const mk = S.mode;
+  const pts = family.map(x => ({ q: x.q, n: queryTables(x).length,
+    pgC: x[mk] && x[mk].summary.considered, pgK: x[mk] && x[mk].summary.retained,
+    calR: x.cal && x.cal.summary.registered, calW: x.cal && x.cal.summary.winners }));
+  const last = pts[pts.length - 1];
+  if (last) main.insertAdjacentHTML("beforeend", `<div class="kpi"><div><div class="k">PostgreSQL costed · ${last.n} tables</div><div class="v">${last.pgC ?? "–"}</div></div><div><div class="k">PostgreSQL kept</div><div class="v">${last.pgK ?? "–"}</div></div><div><div class="k">Calcite nodes · ${last.n} tables</div><div class="v">${last.calR ?? "–"}</div></div><div><div class="k">Calcite winners</div><div class="v">${last.calW ?? "–"}</div></div></div>`);
+  const panel = h("section", { class: "panel" });
+  panel.innerHTML = `<div class="ph"><h2>Plans generated vs kept, by number of tables</h2><span class="stats">${family.map(x => x.q).join(" · ")} (all with a.x = 3) · log scale</span></div>
+  <div class="legend"><span><i class="sw" style="background:var(--pg)"></i>PostgreSQL paths costed (solid) / kept (dashed)</span><span><i class="sw" style="background:var(--cal)"></i>Calcite nodes in memo (solid) / winners (dashed)</span></div>`;
+  const W = 760, H = 340, L = 56, R = 120, T = 16, B = 40;
+  const series = [["pgC", "--pg", "", "PG costed"], ["pgK", "--pg", "6 4", "PG kept"], ["calR", "--cal", "", "Calcite nodes"], ["calW", "--cal", "6 4", "Calcite winners"]];
+  const vals = pts.flatMap(p => series.map(s => p[s[0]])).filter(v => v > 0);
+  const lo = 1, hi = Math.pow(10, Math.ceil(Math.log10(Math.max(...vals, 10))));
+  const xs = pts.map(p => p.n), xmin = Math.min(...xs), xmax = Math.max(...xs);
+  const X = n => L + (xmax === xmin ? 0.5 : (n - xmin) / (xmax - xmin)) * (W - L - R);
+  const Y = v => T + (1 - (Math.log10(v) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo))) * (H - T - B);
+  const sc = h("div", { class: "scroll" });
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", style: `max-width:${W}px;min-width:520px`, role: "img", "aria-label": "Line chart of plan counts by number of tables" });
+  for (let e = 0; Math.pow(10, e) <= hi; e++) { const v = Math.pow(10, e), y = Y(v);
+    el("line", { x1: L, x2: W - R, y1: y, y2: y, stroke: css("--grid") }, svg);
+    const t = el("text", { x: L - 8, y: y + 4, "text-anchor": "end", "font-size": 11, fill: css("--ink-3"), "font-family": css("--font-mono") }, svg); t.textContent = v >= 1000 ? (v / 1000) + "k" : v; }
+  pts.forEach(p => { const t = el("text", { x: X(p.n), y: H - B + 18, "text-anchor": "middle", "font-size": 11.5, fill: css("--ink-2") }, svg); t.textContent = `${p.n} (${p.q})`; });
+  const xl = el("text", { x: (L + W - R) / 2, y: H - 4, "text-anchor": "middle", "font-size": 11, fill: css("--ink-3") }, svg); xl.textContent = "tables joined";
+  const labels = [];
+  for (const [k, c, dash, name] of series) {
+    const ps = pts.filter(p => p[k] > 0); if (!ps.length) continue;
+    el("path", { d: ps.map((p, i) => `${i ? "L" : "M"}${X(p.n)},${Y(p[k])}`).join(" "), fill: "none", stroke: css(c), "stroke-width": 2, "stroke-dasharray": dash }, svg);
+    ps.forEach(p => { const dot = el("circle", { cx: X(p.n), cy: Y(p[k]), r: 4.5, fill: css(c), stroke: css("--panel"), "stroke-width": 2 }, svg);
+      const hit = el("circle", { cx: X(p.n), cy: Y(p[k]), r: 12, fill: "transparent" }, svg);
+      hit.addEventListener("mousemove", e => showTip(e, `<b>${name}</b><br>${p.q}, ${p.n} table${p.n > 1 ? "s" : ""}: ${p[k]}`)); hit.addEventListener("mouseleave", hideTip); });
+    const lp = ps[ps.length - 1]; labels.push({ y: Y(lp[k]), x: X(lp.n) + 10, text: `${name} ${lp[k]}`, c });
+  }
+  labels.sort((a, b) => a.y - b.y); for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 14) labels[i].y = labels[i - 1].y + 14;
+  labels.forEach(l => { const t = el("text", { x: l.x, y: l.y + 4, "font-size": 11.5, fill: css("--ink-2") }, svg); t.textContent = l.text; });
+  sc.appendChild(svg); panel.appendChild(sc);
+  panel.insertAdjacentHTML("beforeend", `<p class="note">PostgreSQL's "costed" includes paths thrown away by add_path_precheck before they were built. Calcite's "nodes" are RelNodes registered in the memo, logical and physical. These are not the same unit; compare how each grows with the number of tables.</p>`);
+  main.appendChild(panel);
+  const tp = h("section", { class: "panel" });
+  tp.innerHTML = `<div class="ph"><h2>All queries</h2></div><div class="tbl"><table><thead><tr><th>Query</th><th>Tables</th><th>PG costed</th><th>PG precheck</th><th>PG rejected</th><th>PG evicted</th><th>PG kept</th><th>PG costed (native)</th><th>Calcite nodes</th><th>Calcite RelSets</th><th>Calcite rule firings</th><th>Calcite in plan</th></tr></thead><tbody>${qs.map(x => { const a = x.pg && x.pg.summary, n = x.pg_native && x.pg_native.summary, c = x.cal && x.cal.summary; return `<tr><td>${x.q}</td><td class="num">${queryTables(x).length}</td><td class="num">${a ? a.considered : "–"}</td><td class="num">${a ? a.pruned_precheck : "–"}</td><td class="num">${a ? a.pruned_on_arrival : "–"}</td><td class="num">${a ? a.evicted_later : "–"}</td><td class="num">${a ? a.retained : "–"}</td><td class="num">${n ? n.considered : "–"}</td><td class="num">${c ? c.registered : "–"}</td><td class="num">${c ? c.relsets : "–"}</td><td class="num">${c ? c.rules_produced : "–"}</td><td class="num">${c ? c.chosen : "–"}</td></tr>`; }).join("")}</tbody></table></div>`;
+  main.appendChild(tp);
+}
+
+/* ---------- shell ---------- */
+function buttons() {
+  const qb = $("#qbtns"); qb.querySelectorAll("button").forEach(b => b.remove());
+  for (const x of DATA.queries) { const b = h("button", { class: "chip", "aria-pressed": String(x.q === S.q) }, `${x.q}<small>${queryTables(x).length}T</small>`); b.onclick = () => { S.q = x.q; S.sel = null; render(); }; qb.appendChild(b); }
+  const vb = $("#vbtns"); vb.querySelectorAll("button").forEach(b => b.remove());
+  for (const [id, label] of [["lattice", "Search space"], ["steps", "Step through"], ["counts", "Counts"]]) { const b = h("button", { class: "chip", "aria-pressed": String(S.view === id) }, label); b.onclick = () => { S.view = id; try { history.replaceState(null, "", "#" + id); } catch (e) {} render(); }; vb.appendChild(b); }
+  const mb = $("#mbtns"); mb.querySelectorAll("button").forEach(b => b.remove());
+  for (const [id, label] of [["pg", "index scans off"], ["pg_native", "native"]]) { const b = h("button", { class: "chip", "aria-pressed": String(S.mode === id) }, label); b.onclick = () => { S.mode = id; S.sel = null; render(); }; mb.appendChild(b); }
+}
+function render() {
+  if (S.playing) { clearInterval(S.playing); S.playing = null; }
+  buttons(); hideTip();
+  $("#sql").textContent = Q().sql;
+  const main = $("#main"); main.innerHTML = ""; main.style.display = "flex"; main.style.flexDirection = "column"; main.style.gap = "16px";
+  if (S.view === "lattice") viewLattice(main); else if (S.view === "steps") viewSteps(main); else viewCounts(main);
+}
+window.addEventListener("hashchange", () => { const v = location.hash.replace("#", ""); if (["lattice", "steps", "counts"].includes(v) && v !== S.view) { S.view = v; render(); } });
+render();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+</script>
