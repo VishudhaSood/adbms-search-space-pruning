@@ -125,7 +125,7 @@ public class PgCostModel implements BuiltInMetadata.NonCumulativeCost.Handler {
     String[] col = baseColumn(inner, keys.get(0));
     if (col == null) return false;
     PgStats.Column c = stats.column(col[0], col[1]);
-    return c != null && c.nDistinctRaw == -1;
+    return c != null && c.nDistinctRaw == -1 && col[1].equals("id");
   }
 
   /** Follow column i down to a base-table column; null if it passes through a join. */

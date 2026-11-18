@@ -397,6 +397,8 @@ sel EnumerableMergeJoin =($0, $3) -> 0.001
 sel EnumerableHashJoin =($1, $3) -> 5.0E-5
   join =($1, $3) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
 sel EnumerableMergeJoin =($1, $3) -> 5.0E-5
+  join =($2, $6) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin =($2, $6) -> 2.0E-4
   filter =($1, 3) origin=Origin[table=a, column=x] literal=3 mcv=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 sel RelSubset =($1, 3) -> 0.1
   join =($2, $6) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
@@ -662,12 +664,6 @@ sel EnumerableMergeJoin =($1, $6) -> 0.001
 sel EnumerableHashJoin =($1, $5) -> 5.0E-5
   join =($1, $5) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
 sel EnumerableMergeJoin =($1, $5) -> 5.0E-5
-  join =($1, $9) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
-  join =($0, $4) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
-sel EnumerableHashJoin AND(=($1, $9), =($0, $4)) -> 2.0000000000000002E-7
-  join =($6, $9) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
-  join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
-sel EnumerableHashJoin AND(=($6, $9), =($1, $8)) -> 2.0000000000000002E-7
   join =($3, $6) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
 sel EnumerableHashJoin =($3, $6) -> 0.001
   join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
@@ -1004,6 +1000,8 @@ sel EnumerableMergeJoin =($0, $3) -> 0.001
 sel EnumerableHashJoin =($1, $3) -> 5.0E-5
   join =($1, $3) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
 sel EnumerableMergeJoin =($1, $3) -> 5.0E-5
+  join =($2, $6) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin =($2, $6) -> 2.0E-4
   join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableHashJoin =($1, $8) -> 2.0E-4
   join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
@@ -1063,8 +1061,6 @@ sel EnumerableMergeJoin =($5, $9) -> 5.0E-5
 sel RelSubset =($1, 3) -> 0.1
   join =($2, $6) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
 sel EnumerableHashJoin =($2, $6) -> 2.0E-4
-  join =($0, $12) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
-sel EnumerableHashJoin =($0, $12) -> 0.001
   filter =($1, 3) origin=Origin[table=a, column=x] literal=3 mcv=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 sel RelSubset =($1, 3) -> 0.1
   join =($2, $6) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
@@ -1128,10 +1124,6 @@ sel EnumerableHashJoin =($0, $12) -> 0.001
 sel EnumerableHashJoin =($1, $3) -> 0.001
   filter =($1, 3) origin=Origin[table=a, column=x] literal=3 mcv=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 sel RelSubset =($1, 3) -> 0.1
-  join =($0, $12) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
-sel EnumerableHashJoin =($0, $12) -> 0.001
-  join =($1, $3) left=Origin[table=e, column=a_id] right=Origin[table=a, column=id]
-sel EnumerableHashJoin =($1, $3) -> 0.001
   filter =($1, 3) origin=Origin[table=a, column=x] literal=3 mcv=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 sel RelSubset =($1, 3) -> 0.1
   join =($0, $12) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
@@ -1215,10 +1207,6 @@ sel EnumerableMergeJoin =($0, $3) -> 0.001
 sel EnumerableHashJoin =($1, $8) -> 2.0E-4
   join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableMergeJoin =($1, $8) -> 2.0E-4
-  join =($0, $12) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
-sel EnumerableHashJoin =($0, $12) -> 0.001
-  join =($1, $3) left=Origin[table=e, column=a_id] right=Origin[table=a, column=id]
-sel EnumerableHashJoin =($1, $3) -> 0.001
   join =($3, $6) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
   join =($1, $5) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableHashJoin AND(=($3, $6), =($1, $5)) -> 2.0000000000000002E-7
@@ -1474,6 +1462,8 @@ sel EnumerableHashJoin =($1, $3) -> 0.001
 sel EnumerableMergeJoin =($1, $3) -> 0.001
   join =($1, $12) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
 sel EnumerableHashJoin =($1, $12) -> 0.001
+  filter =($1, 3) origin=Origin[table=a, column=x] literal=3 mcv=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+sel RelSubset =($1, 3) -> 0.1
   join =($3, $1) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
 sel LogicalJoin =($3, $1) -> 0.001
   join =($1, $12) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
@@ -1519,6 +1509,8 @@ sel EnumerableHashJoin =($0, $6) -> 0.001
 sel EnumerableMergeJoin =($0, $6) -> 0.001
   join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableHashJoin =($1, $11) -> 2.0E-4
+  filter =($1, 3) origin=Origin[table=a, column=x] literal=3 mcv=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+sel RelSubset =($1, 3) -> 0.1
   join =($5, $9) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
 sel EnumerableHashJoin =($5, $9) -> 2.0E-4
   join =($5, $9) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
@@ -1726,14 +1718,6 @@ sel EnumerableMergeJoin =($1, $10) -> 0.001
 sel EnumerableHashJoin =($0, $3) -> 0.001
   join =($0, $3) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
 sel EnumerableMergeJoin =($0, $3) -> 0.001
-  join =($1, $12) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
-sel EnumerableHashJoin =($1, $12) -> 0.001
-  join =($1, $12) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
-  join =($0, $4) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
-sel EnumerableHashJoin AND(=($1, $12), =($0, $4)) -> 2.0000000000000002E-7
-  join =($9, $12) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
-  join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
-sel EnumerableHashJoin AND(=($9, $12), =($1, $11)) -> 2.0000000000000002E-7
   join =($3, $6) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
 sel EnumerableHashJoin =($3, $6) -> 0.001
   join =($3, $6) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
@@ -1746,12 +1730,13 @@ sel EnumerableMergeJoin =($1, $6) -> 0.001
 sel EnumerableHashJoin =($0, $6) -> 0.001
   join =($0, $6) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
 sel EnumerableMergeJoin =($0, $6) -> 0.001
-  join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
-sel EnumerableHashJoin =($1, $11) -> 2.0E-4
   join =($5, $9) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
 sel EnumerableHashJoin =($5, $9) -> 2.0E-4
   join =($5, $9) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
 sel EnumerableMergeJoin =($5, $9) -> 2.0E-4
+  join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
+  join =($0, $4) left=Origin[table=c, column=id] right=Origin[table=d, column=c_id]
+sel EnumerableHashJoin AND(=($1, $11), =($0, $4)) -> 1.0E-8
   join =($0, $9) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
 sel EnumerableHashJoin =($0, $9) -> 0.001
   join =($0, $9) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
@@ -1941,6 +1926,12 @@ sel EnumerableHashJoin AND(=($1, $12), =($0, $4)) -> 2.0000000000000002E-7
   join =($9, $12) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
   join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableHashJoin AND(=($9, $12), =($1, $11)) -> 2.0000000000000002E-7
+  join =($1, $12) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
+  join =($0, $4) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin AND(=($1, $12), =($0, $4)) -> 2.0000000000000002E-7
+  join =($9, $12) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
+  join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
+sel EnumerableHashJoin AND(=($9, $12), =($1, $11)) -> 2.0000000000000002E-7
   join =($3, $6) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
 sel EnumerableHashJoin =($3, $6) -> 0.001
   join =($3, $6) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
@@ -1963,12 +1954,6 @@ sel EnumerableMergeJoin =($0, $3) -> 0.001
 sel EnumerableHashJoin =($1, $5) -> 5.0E-5
   join =($1, $5) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
 sel EnumerableMergeJoin =($1, $5) -> 5.0E-5
-  join =($1, $9) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
-  join =($0, $4) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
-sel EnumerableHashJoin AND(=($1, $9), =($0, $4)) -> 2.0000000000000002E-7
-  join =($6, $9) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
-  join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
-sel EnumerableHashJoin AND(=($6, $9), =($1, $8)) -> 2.0000000000000002E-7
   join =($3, $6) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
 sel EnumerableHashJoin =($3, $6) -> 0.001
   join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
@@ -2063,8 +2048,16 @@ sel EnumerableHashJoin AND(=($7, $9), =($1, $9)) -> 1.0E-6
 sel EnumerableMergeJoin AND(=($7, $9), =($1, $9)) -> 1.0E-6
   join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableHashJoin =($1, $8) -> 2.0E-4
+  join =($1, $11) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
+sel EnumerableHashJoin =($1, $11) -> 5.0E-5
+  join =($8, $12) left=Origin[table=c, column=id] right=Origin[table=d, column=c_id]
+sel EnumerableHashJoin =($8, $12) -> 5.0E-5
   join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableMergeJoin =($1, $8) -> 2.0E-4
+  join =($1, $11) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
+sel EnumerableHashJoin =($1, $11) -> 5.0E-5
+  join =($8, $12) left=Origin[table=c, column=id] right=Origin[table=d, column=c_id]
+sel EnumerableHashJoin =($8, $12) -> 5.0E-5
   join =($1, $9) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
   join =($0, $4) left=Origin[table=c, column=id] right=Origin[table=d, column=c_id]
 sel EnumerableHashJoin AND(=($1, $9), =($0, $4)) -> 1.0E-8
@@ -2145,6 +2138,10 @@ sel EnumerableHashJoin =($1, $4) -> 0.001
 sel EnumerableMergeJoin =($1, $4) -> 0.001
   join =($1, $9) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableHashJoin =($1, $9) -> 2.0E-4
+  join =($0, $12) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
+sel EnumerableHashJoin =($0, $12) -> 0.001
+  join =($10, $12) left=Origin[table=e, column=a_id] right=Origin[table=a, column=id]
+sel EnumerableHashJoin =($10, $12) -> 0.001
   join =($3, $7) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
 sel EnumerableHashJoin =($3, $7) -> 2.0E-4
   join =($3, $7) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
@@ -2219,6 +2216,18 @@ sel EnumerableHashJoin AND(=($1, $11), =($7, $12)) -> 2.0000000000000002E-7
   join =($9, $12) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
   join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableHashJoin AND(=($9, $12), =($1, $11)) -> 2.0000000000000002E-7
+  join =($0, $4) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+  join =($1, $10) left=Origin[table=b, column=a_id] right=Origin[table=e, column=a_id]
+sel EnumerableHashJoin AND(=($0, $4), =($1, $10)) -> 2.0000000000000002E-7
+  join =($1, $12) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
+  join =($0, $4) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin AND(=($1, $12), =($0, $4)) -> 2.0000000000000002E-7
+  join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
+  join =($7, $12) left=Origin[table=e, column=a_id] right=Origin[table=b, column=a_id]
+sel EnumerableHashJoin AND(=($1, $11), =($7, $12)) -> 2.0000000000000002E-7
+  join =($9, $12) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
+  join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
+sel EnumerableHashJoin AND(=($9, $12), =($1, $11)) -> 2.0000000000000002E-7
   join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
   join =($7, $12) left=Origin[table=e, column=a_id] right=Origin[table=b, column=a_id]
   join =($7, $9) left=Origin[table=e, column=a_id] right=Origin[table=a, column=id]
@@ -2269,8 +2278,36 @@ sel EnumerableHashJoin =($1, $3) -> 0.001
 sel EnumerableMergeJoin =($1, $3) -> 0.001
   join =($1, $6) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
 sel EnumerableHashJoin =($1, $6) -> 0.001
+  join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
+sel EnumerableHashJoin =($1, $11) -> 2.0E-4
+  join =($5, $9) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin =($5, $9) -> 2.0E-4
+  join =($5, $9) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin =($5, $9) -> 2.0E-4
+  join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
+sel EnumerableHashJoin =($1, $8) -> 2.0E-4
+  join =($1, $11) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
+sel EnumerableHashJoin =($1, $11) -> 5.0E-5
+  join =($8, $12) left=Origin[table=c, column=id] right=Origin[table=d, column=c_id]
+sel EnumerableHashJoin =($8, $12) -> 5.0E-5
+  filter =($1, 3) origin=Origin[table=a, column=x] literal=3 mcv=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+sel RelSubset =($1, 3) -> 0.1
   join =($1, $6) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
 sel EnumerableMergeJoin =($1, $6) -> 0.001
+  join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
+sel EnumerableHashJoin =($1, $11) -> 2.0E-4
+  join =($5, $9) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin =($5, $9) -> 2.0E-4
+  join =($5, $9) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin =($5, $9) -> 2.0E-4
+  join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
+sel EnumerableHashJoin =($1, $8) -> 2.0E-4
+  join =($1, $11) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
+sel EnumerableHashJoin =($1, $11) -> 5.0E-5
+  join =($8, $12) left=Origin[table=c, column=id] right=Origin[table=d, column=c_id]
+sel EnumerableHashJoin =($8, $12) -> 5.0E-5
+  filter =($1, 3) origin=Origin[table=a, column=x] literal=3 mcv=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+sel RelSubset =($1, 3) -> 0.1
   join =($1, $9) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
 sel EnumerableHashJoin =($1, $9) -> 0.001
   join =($1, $9) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
@@ -2501,8 +2538,32 @@ sel EnumerableHashJoin =($2, $6) -> 5.0E-5
 sel EnumerableMergeJoin =($2, $6) -> 5.0E-5
   join =($1, $6) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
 sel EnumerableHashJoin =($1, $6) -> 0.001
+  join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
+sel EnumerableHashJoin =($1, $11) -> 2.0E-4
+  join =($5, $9) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin =($5, $9) -> 2.0E-4
+  join =($5, $9) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin =($5, $9) -> 2.0E-4
+  join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
+sel EnumerableHashJoin =($1, $8) -> 2.0E-4
+  join =($1, $11) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
+sel EnumerableHashJoin =($1, $11) -> 5.0E-5
+  join =($8, $12) left=Origin[table=c, column=id] right=Origin[table=d, column=c_id]
+sel EnumerableHashJoin =($8, $12) -> 5.0E-5
   join =($1, $6) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
 sel EnumerableMergeJoin =($1, $6) -> 0.001
+  join =($1, $11) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
+sel EnumerableHashJoin =($1, $11) -> 2.0E-4
+  join =($5, $9) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin =($5, $9) -> 2.0E-4
+  join =($5, $9) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin =($5, $9) -> 2.0E-4
+  join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
+sel EnumerableHashJoin =($1, $8) -> 2.0E-4
+  join =($1, $11) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
+sel EnumerableHashJoin =($1, $11) -> 5.0E-5
+  join =($8, $12) left=Origin[table=c, column=id] right=Origin[table=d, column=c_id]
+sel EnumerableHashJoin =($8, $12) -> 5.0E-5
   join =($1, $9) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
 sel EnumerableHashJoin =($1, $9) -> 0.001
   join =($1, $9) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
@@ -2548,8 +2609,16 @@ sel EnumerableHashJoin =($1, $4) -> 0.001
 sel EnumerableMergeJoin =($1, $4) -> 0.001
   join =($1, $6) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableHashJoin =($1, $6) -> 2.0E-4
+  join =($1, $9) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
+sel EnumerableHashJoin =($1, $9) -> 5.0E-5
+  join =($6, $10) left=Origin[table=c, column=id] right=Origin[table=d, column=c_id]
+sel EnumerableHashJoin =($6, $10) -> 5.0E-5
   join =($1, $6) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableMergeJoin =($1, $6) -> 2.0E-4
+  join =($1, $9) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
+sel EnumerableHashJoin =($1, $9) -> 5.0E-5
+  join =($6, $10) left=Origin[table=c, column=id] right=Origin[table=d, column=c_id]
+sel EnumerableHashJoin =($6, $10) -> 5.0E-5
   join =($0, $6) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
 sel EnumerableHashJoin =($0, $6) -> 0.001
   join =($0, $6) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
@@ -2646,10 +2715,6 @@ sel EnumerableMergeJoin =($0, $6) -> 0.001
 sel EnumerableHashJoin =($1, $9) -> 0.001
   join =($1, $9) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
 sel EnumerableMergeJoin =($1, $9) -> 0.001
-  join =($1, $3) left=Origin[table=e, column=a_id] right=Origin[table=a, column=id]
-sel EnumerableHashJoin =($1, $3) -> 0.001
-  join =($0, $9) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
-sel EnumerableHashJoin =($0, $9) -> 0.001
   join =($3, $6) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
 sel EnumerableHashJoin =($3, $6) -> 0.001
   join =($3, $6) left=Origin[table=a, column=id] right=Origin[table=b, column=a_id]
@@ -3665,13 +3730,13 @@ sel LogicalJoin AND(=($7, $12), =($9, $7), =($11, $1)) -> 2.0E-10
   join =($6, $4) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
   join =($8, $1) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
 sel LogicalJoin AND(=($4, $9), =($6, $4), =($8, $1)) -> 2.0E-10
-Q7: {registered=1984, registered_logical=800, registered_physical=1184, rules_attempted=1836, rules_produced=1768, relsets=164, subsets=453, winners=164, chosen=15}
+Q7: {registered=1984, registered_logical=800, registered_physical=1184, rules_attempted=1836, rules_produced=1768, relsets=164, subsets=453, winners=164, chosen=14}
   filter =($1, 3) origin=Origin[table=a, column=x] literal=3 mcv=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 sel EnumerableTableScan =($1, 3) -> 0.1
-  join =($1, $3) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
+  join =($1, $3) left=Origin[table=e, column=a_id] right=Origin[table=a, column=id]
 sel EnumerableHashJoin =($1, $3) -> 0.001
-  join =($0, $6) left=Origin[table=a, column=id] right=Origin[table=e, column=a_id]
-sel EnumerableHashJoin =($0, $6) -> 0.001
+  join =($1, $6) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
+sel EnumerableHashJoin =($1, $6) -> 0.001
   join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableHashJoin =($1, $8) -> 2.0E-4
   join =($1, $11) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
@@ -3758,6 +3823,8 @@ sel EnumerableMergeJoin =($0, $3) -> 0.001
 sel EnumerableHashJoin =($1, $3) -> 5.0E-5
   join =($1, $3) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
 sel EnumerableMergeJoin =($1, $3) -> 5.0E-5
+  join =($2, $6) left=Origin[table=b, column=id] right=Origin[table=c, column=b_id]
+sel EnumerableHashJoin =($2, $6) -> 2.0E-4
   join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableHashJoin =($1, $8) -> 2.0E-4
   join =($1, $8) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
@@ -3970,9 +4037,9 @@ sel LogicalJoin =($5, $1) -> 5.0E-5
 sel LogicalJoin =($6, $1) -> 0.001
   join =($2, $6) left=Origin[table=c, column=id] right=Origin[table=d, column=c_id]
 sel LogicalJoin =($2, $6) -> 5.0E-5
-Q8: {registered=268, registered_logical=104, registered_physical=164, rules_attempted=221, rules_produced=211, relsets=33, subsets=90, winners=33, chosen=10}
-  join =($0, $4) left=Origin[table=c, column=id] right=Origin[table=d, column=c_id]
-sel EnumerableHashJoin =($0, $4) -> 5.0E-5
+Q8: {registered=268, registered_logical=104, registered_physical=164, rules_attempted=221, rules_produced=211, relsets=33, subsets=90, winners=33, chosen=11}
+  join =($1, $3) left=Origin[table=d, column=c_id] right=Origin[table=c, column=id]
+sel EnumerableHashJoin =($1, $3) -> 5.0E-5
   join =($1, $6) left=Origin[table=c, column=b_id] right=Origin[table=b, column=id]
 sel EnumerableHashJoin =($1, $6) -> 2.0E-4
   join =($1, $9) left=Origin[table=b, column=a_id] right=Origin[table=a, column=id]
