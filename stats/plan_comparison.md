@@ -17,6 +17,7 @@ PostgreSQL shows the build side under `Hash`; in Calcite's `EnumerableHashJoin` 
 | Q6 | 4 | σa, b, c, d | probe d, hash [Q4 plan] | Same | 545.18..747.68 | 1000 | Yes | Same costs, same space |
 | Q7 | 5 | σa, e, b, c, d | probe d, hash [probe c, hash [probe b, hash (probe e, hash σa)]] | Same (after fix) | 537.56..735.06 | 500 | Yes | Before the fix Calcite joined σa⋈b first and then hashed e (732.62) because it under-costed hashing e |
 | Q8 | 4 | c, d, then b, a | probe (probe (probe d, hash c), hash b), hash a | Same (after fix) | 727.00..960.88 | 10000 | Yes | Before the fix Calcite hashed d instead of c (862.14) because it under-costed hashing d |
+| Q9 | 3 | σa, b, c, then sort | Sort b.id over [probe c, hash (probe b, hash σa)] | Same | 629.84..634.84 | 2000 | Yes | Q4 + ORDER BY b.id. Sorting the hash-join result beats the already-sorted merge join (1992.61) that PostgreSQL keeps for its sort order |
 
 All final joins are hash joins. In Calcite, merge join never really competed: it is generated for
 every equi-join, but none of the 450 merge joins across Q1 to Q8 gets a finite cost, because their
@@ -39,3 +40,15 @@ Fix: only columns with a primary key (`id`) count as unique. After it, all 8 pla
 
 **Finding:** with the same costs, the System R DP and the Volcano memo pick the same winner on all
 8 queries. The only difference left is the size of the search (see `search_space_counts.md`).
+
+## Other Calcite modes (20 Nov)
+
+| Mode | Option | Plans vs PostgreSQL |
+| --- | --- | --- |
+| Bottom-up, no sort rule (week 3) | `nosort` | All match (Q1 to Q8) |
+| Bottom-up + sort rule (default) | none | All match (Q1 to Q9) |
+| Bottom-up + sort rule + nested loop for equi-joins | `nlj` | All match (Q1 to Q9) |
+| Top-down (sorts handled by the search) | `topdown` | All match except Q8: Calcite picks 1037.27 vs 960.88 |
+
+Q8 in top-down: branch-and-bound pruning dropped the optimum. Likely cause: `PgCostModel` makes a hash
+join's own cost depend on its input's current best cost, so costs can change after a pruning decision.
