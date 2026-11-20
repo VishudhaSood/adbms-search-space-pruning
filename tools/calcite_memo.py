@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Day 2: break down Calcite's memo for one query, from traces/calcite_<Q>.json.
 
-Run from the repo root:  python3 tools/calcite_memo.py Q4
+Run from the repo root:  python3 tools/calcite_memo.py Q4 [suffix]   (suffix e.g. _nosort, _nlj)
 Prints: summary, RelSets grouped by table set (with winners and chosen plan),
 which rule produced which RelNodes, join operators generated, and the
 best-plan timeline.
@@ -9,7 +9,8 @@ best-plan timeline.
 import collections, json, sys
 
 q = sys.argv[1] if len(sys.argv) > 1 else "Q4"
-t = json.load(open(f"traces/calcite_{q}.json"))
+suffix = sys.argv[2] if len(sys.argv) > 2 else ""
+t = json.load(open(f"traces/calcite_{q}{suffix}.json"))
 sets = {s["id"]: tuple(s["tables"]) for s in t["sets"]}
 short = lambda op: op.replace("Enumerable", "E.").replace("Logical", "L.")
 

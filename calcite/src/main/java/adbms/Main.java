@@ -13,6 +13,7 @@ import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptUtil;
+import org.apache.calcite.plan.volcano.AbstractConverter;
 import org.apache.calcite.plan.volcano.RelSubset;
 import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.rel.RelNode;
@@ -36,9 +37,23 @@ import org.apache.calcite.util.ImmutableBitSet;
 
 public class Main {
   public static void main(String[] args) throws Exception {
-    String statsPath = args.length > 0 ? args[0] : "../stats/test_tables.json";
-    boolean topDown = args.length > 1 && args[1].equals("topdown");   // stretch: Calcite's top-down mode with cost-bound pruning
-    String traceSuffix = topDown ? "_topdown" : "";
+    // Arguments, in any order: a path ending in .json = the stats file; anything else is an option.
+    //   nosort  : don't turn sort requests into real Sorts (the week-3 baseline: merge join never gets a cost)
+    //   nlj     : also offer a nested-loop join for equality joins, as PostgreSQL does
+    //   topdown : Calcite's top-down mode with cost-bound pruning (stretch)
+    // Example: mvn -q compile exec:java -Dexec.args="nlj"
+    String statsPath = "../stats/test_tables.json";
+    Set<String> opts = new HashSet<>();
+    for (String a : args) {
+      if (a.endsWith(".json")) statsPath = a; else opts.add(a.toLowerCase());
+    }
+    boolean sortEnforcer = !opts.contains("nosort");
+    boolean nlj = opts.contains("nlj");
+    boolean topDown = opts.contains("topdown");
+    // Trace files get a suffix per non-default option, so runs with different options never overwrite each other
+    String traceSuffix = (sortEnforcer ? "" : "_nosort") + (nlj ? "_nlj" : "") + (topDown ? "_topdown" : "");
+    System.err.println("Options: sort enforcer=" + sortEnforcer + ", nested loop for equi-joins=" + nlj
+        + ", top-down=" + topDown + "; traces -> calcite_Q*" + traceSuffix + ".json");
     PgStats stats = PgStats.load(statsPath);
 
     String[] queries = {
@@ -50,7 +65,10 @@ public class Main {
       // week 3: 4 and 5 tables (needs sql/test_tables_de.sql + re-run extract_stats.sql)
       "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id WHERE a.x = 3",
       "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id JOIN e ON a.id = e.a_id WHERE a.x = 3",
-      "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id"
+      "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id",
+      // Q9 = Q4 + ORDER BY on the next join's key: a merge join on b.id = c.b_id already outputs
+      // rows sorted on b.id, so sort order becomes "interesting" (System R) / a required property (Volcano)
+      "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3 ORDER BY b.id"
     };
 
     // 1. PostgreSQL connection, used only to read each table's columns
@@ -94,7 +112,7 @@ public class Main {
         .as(JoinAssociateRule.Config.class)
         .toRule();
 
-    RuleSet rules = RuleSets.ofList(
+    List<RelOptRule> ruleList = new ArrayList<>(List.of(
         CoreRules.FILTER_INTO_JOIN,
         CoreRules.JOIN_COMMUTE,
         joinAssociate,
@@ -103,7 +121,13 @@ public class Main {
         EnumerableRules.ENUMERABLE_PROJECT_RULE,
         EnumerableRules.ENUMERABLE_JOIN_RULE,
         EnumerableRules.ENUMERABLE_MERGE_JOIN_RULE,
-        EnumerableRules.ENUMERABLE_SORT_RULE);
+        EnumerableRules.ENUMERABLE_SORT_RULE));
+    // Merge join asks for sorted inputs through AbstractConverter placeholders. This rule turns each
+    // placeholder into a LogicalSort, which ENUMERABLE_SORT_RULE then makes an EnumerableSort.
+    // Without it the sorted subsets stay empty and every merge join has infinite cost.
+    if (sortEnforcer) ruleList.add(AbstractConverter.ExpandConversionRule.INSTANCE);
+    if (nlj) ruleList.add(EnumerableEquiNestedLoopJoinRule.INSTANCE);
+    RuleSet rules = RuleSets.ofList(ruleList);
 
     FrameworkConfig cfg = Frameworks.newConfigBuilder()
         .defaultSchema(root.getSubSchema("pgstats"))

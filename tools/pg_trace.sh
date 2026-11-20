@@ -5,6 +5,7 @@
 # Run from /workspaces/pg_dev at the dev@ prompt, after: source /workspaces/pg_dev/env.sh
 #   bash tools/pg_trace.sh            # index scans OFF (same operator menu as Calcite)
 #   bash tools/pg_trace.sh native     # index scans ON  (PostgreSQL as it normally plans)
+#   ONLY=Q9 bash tools/pg_trace.sh    # just one query (default: every query in tools/queries.txt)
 set -e
 MODE=${1:-fair}
 DB=${DB:-test}
@@ -18,6 +19,7 @@ fi
 
 while IFS='|' read -r Q SQL; do
   [ -z "$Q" ] && continue
+  [ -n "$ONLY" ] && [ "$Q" != "$ONLY" ] && continue
   # client_min_messages = log sends the TRACE lines to this psql session (stderr)
   psql "$DB" -X -q -P pager=off -c "$SETS SET client_min_messages = log; EXPLAIN $SQL" \
        > "$OUT/$Q.log" 2>&1
