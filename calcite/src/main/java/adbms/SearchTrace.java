@@ -11,7 +11,11 @@ import org.apache.calcite.plan.RelOptCost;
 import org.apache.calcite.plan.RelOptListener;
 import org.apache.calcite.plan.volcano.RelSubset;
 import org.apache.calcite.plan.volcano.VolcanoPlanner;
+import org.apache.calcite.rel.RelCollation;
+import org.apache.calcite.rel.RelCollationTraitDef;
+import org.apache.calcite.rel.RelFieldCollation;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.metadata.RelColumnOrigin;
 import org.apache.calcite.rel.metadata.RelMetadataQuery;
 import org.apache.calcite.rex.RexTableInputRef.RelTableRef;
 
@@ -22,6 +26,7 @@ import org.apache.calcite.rex.RexTableInputRef.RelTableRef;
  *  - rule firings attempted / that produced something
  *  - a timeline of the root's best plan: a snapshot every time its cost changes
  *  - at the end: every node's RelSet, subset (traits), inputs, cost, rows, and which nodes won
+ *  - t_us on every event: microseconds since the trace was created (= just before transform)
  *
  * Usage in Main, per query, BEFORE planner.transform(...):
  *   VolcanoPlanner vp = (VolcanoPlanner) logical.getCluster().getPlanner();
@@ -40,6 +45,11 @@ public class SearchTrace implements RelOptListener {
   private final List<Map<String, Object>> events = new ArrayList<>();
   private final Map<Integer, RelNode> nodes = new LinkedHashMap<>();
   private final List<Map<String, Object>> timeline = new ArrayList<>();
+  /** One entry per rule firing: [t_us when it started, rule name, nodes it registered]. */
+  private final List<Object[]> firings = new ArrayList<>();
+  private final long t0 = System.nanoTime();
+  private long planningUs = -1;
+  private Object[] currentFiring = null;
   private String currentRule = "initial";
   private int step = 0, rulesAttempted = 0, rulesProduced = 0;
   private double lastBestTotal = Double.NaN;
@@ -58,6 +68,7 @@ public class SearchTrace implements RelOptListener {
     nodes.put(rel.getId(), rel);
     Map<String, Object> ev = new LinkedHashMap<>();
     ev.put("step", ++step);
+    ev.put("t_us", us());
     ev.put("node", rel.getId());
     ev.put("op", rel.getRelTypeName());
     ev.put("subset_at_registration", String.valueOf(e.getEquivalenceClass()));
@@ -65,14 +76,18 @@ public class SearchTrace implements RelOptListener {
     ev.put("physical", isPhysical(rel));
     ev.put("result", "registered");
     events.add(ev);
+    if (currentFiring != null) currentFiring[2] = (Integer) currentFiring[2] + 1;
   }
 
   @Override public void ruleAttempted(RuleAttemptedEvent e) {
     if (e.isBefore()) {
       rulesAttempted++;
       currentRule = e.getRuleCall().getRule().toString();
+      currentFiring = new Object[] {us(), currentRule, 0};
+      firings.add(currentFiring);
     } else {
       currentRule = "initial";
+      currentFiring = null;
     }
   }
 
@@ -100,6 +115,7 @@ public class SearchTrace implements RelOptListener {
       lastBestTotal = c[1];
       Map<String, Object> snap = new LinkedHashMap<>();
       snap.put("step", step);
+      snap.put("t_us", us());
       snap.put("startup", c[0]);
       snap.put("total", c[1]);
       snap.put("plan", tree(best, mq, 0));
@@ -141,6 +157,7 @@ public class SearchTrace implements RelOptListener {
   // ---------------- end of planning ----------------
 
   public void finish() {
+    planningUs = us();          // first thing: the clock stops when transform() has returned
     snapshotRootBest();
     RelMetadataQuery mq = planner.getRoot().getCluster().getMetadataQuery();
 
@@ -162,6 +179,8 @@ public class SearchTrace implements RelOptListener {
       int set = Integer.parseInt(st[0]);
       n.put("set", set);
       n.put("traits", st[1]);
+      List<String> sortCols = sortColumns(rel, mq);
+      if (!sortCols.isEmpty()) n.put("sorted_on", sortCols);
       List<Object> ins = new ArrayList<>();
       for (RelNode in : rel.getInputs()) {
         if (in instanceof RelSubset) {
@@ -210,6 +229,7 @@ public class SearchTrace implements RelOptListener {
     summary.put("subsets", subsetWinner.size());
     summary.put("winners", subsetWinner.values().stream().filter(Objects::nonNull).distinct().count());
     summary.put("chosen", chosen.size());
+    summary.put("planning_us_traced_this_run", planningUs);
 
     out.put("optimizer", "calcite");
     out.put("query", query);
@@ -218,8 +238,17 @@ public class SearchTrace implements RelOptListener {
     out.put("nodes", nodeList);
     out.put("sets", sets);
     out.put("timeline", timeline);
+    out.put("firings", firings);
     out.put("summary", summary);
     out.put("final_plan", rootBest == null ? null : tree(rootBest, mq, 0));
+  }
+
+  /** Planning-time measurements from Main (repeated runs, with and without this listener). */
+  public void setTimings(Map<String, Object> timings) {
+    out.put("timing", timings);
+    @SuppressWarnings("unchecked")
+    Map<String, Object> summary = (Map<String, Object>) out.get("summary");
+    if (summary != null) summary.putAll(timings);
   }
 
   public void write(String path) throws Exception {
@@ -230,6 +259,32 @@ public class SearchTrace implements RelOptListener {
   }
 
   // ---------------- helpers ----------------
+
+  private long us() { return (System.nanoTime() - t0) / 1000; }
+
+  /** A node's sort order as table.column names, e.g. ["b.id"]; empty if unsorted. */
+  private static List<String> sortColumns(RelNode rel, RelMetadataQuery mq) {
+    List<String> cols = new ArrayList<>();
+    try {
+      RelCollation c = rel.getTraitSet().getTrait(RelCollationTraitDef.INSTANCE);
+      if (c == null) return cols;
+      for (RelFieldCollation fc : c.getFieldCollations()) {
+        int i = fc.getFieldIndex();
+        String name = "#" + i;
+        RelColumnOrigin o = mq.getColumnOrigin(rel, i);
+        if (o != null) {
+          List<String> q = o.getOriginTable().getQualifiedName();
+          String col = o.getOriginTable().getRowType().getFieldList()
+              .get(o.getOriginColumnOrdinal()).getName();
+          name = (q.get(q.size() - 1) + "." + col).toLowerCase();
+        } else if (i < rel.getRowType().getFieldCount()) {
+          name = rel.getRowType().getFieldList().get(i).getName().toLowerCase();
+        }
+        cols.add(name + (fc.getDirection().isDescending() ? " desc" : ""));
+      }
+    } catch (Throwable ignored) { }
+    return cols;
+  }
 
   private static boolean isPhysical(RelNode rel) {
     Convention c = rel.getTraitSet().getTrait(ConventionTraitDef.INSTANCE);

@@ -24,7 +24,7 @@ import org.apache.calcite.util.NlsString;
 
 /** PostgreSQL-style selectivity for col = const and col = col. Everything else: Calcite's guess. */
 public class PgSelectivity implements BuiltInMetadata.Selectivity.Handler {
-  private static final boolean DEBUG = true;   // delete the debug lines before pushing
+  private static final boolean DEBUG = false;  // delete the debug lines before pushing
 
   private final PgStats stats;
 
