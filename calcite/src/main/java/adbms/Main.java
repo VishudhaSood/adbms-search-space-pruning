@@ -41,11 +41,21 @@ public class Main {
     //   nosort  : don't turn sort requests into real Sorts (the week-3 baseline: merge join never gets a cost)
     //   nlj     : also offer a nested-loop join for equality joins, as PostgreSQL does
     //   topdown : Calcite's top-down mode with cost-bound pruning (stretch)
+    //   reps=N  : plan each query N times untraced and N times traced (default 5); timings = median of runs 2..N
+    //   only=Q8 : plan only these queries (comma-separated, e.g. only=Q4,Q8)
     // Example: mvn -q compile exec:java -Dexec.args="nlj"
     String statsPath = "../stats/test_tables.json";
     Set<String> opts = new HashSet<>();
+    int reps = 5;
+    int warmup = 10;
+    Set<String> only = new HashSet<>();
     for (String a : args) {
-      if (a.endsWith(".json")) statsPath = a; else opts.add(a.toLowerCase());
+      String lower = a.toLowerCase();
+      if (a.endsWith(".json")) statsPath = a;
+      else if (lower.startsWith("reps=")) reps = Math.max(1, Integer.parseInt(lower.substring(5)));
+      else if (lower.startsWith("warmup=")) warmup = Math.max(0, Integer.parseInt(lower.substring(7)));
+      else if (lower.startsWith("only=")) only.addAll(Arrays.asList(a.substring(5).toUpperCase().split(",")));
+      else opts.add(lower);
     }
     boolean sortEnforcer = !opts.contains("nosort");
     boolean nlj = opts.contains("nlj");
@@ -53,7 +63,8 @@ public class Main {
     // Trace files get a suffix per non-default option, so runs with different options never overwrite each other
     String traceSuffix = (sortEnforcer ? "" : "_nosort") + (nlj ? "_nlj" : "") + (topDown ? "_topdown" : "");
     System.err.println("Options: sort enforcer=" + sortEnforcer + ", nested loop for equi-joins=" + nlj
-        + ", top-down=" + topDown + "; traces -> calcite_Q*" + traceSuffix + ".json");
+        + ", top-down=" + topDown + ", reps=" + reps + (only.isEmpty() ? "" : ", only=" + only)
+        + "; traces -> calcite_Q*" + traceSuffix + ".json");
     PgStats stats = PgStats.load(statsPath);
 
     String[] queries = {
@@ -135,32 +146,94 @@ public class Main {
         .programs(Programs.ofRules(rules))
         .costFactory(new PgCostFactory())   // PG-style cost model (Vishudha)
         .build();
-
-    // 5. Plan each query
+        // 4b. Warm up the JVM: plan every selected query `warmup` times, untraced, before measuring anything.
+        for (int w = 0; w < warmup; w++) {
+          for (int qi = 0; qi < queries.length; qi++) {
+            String qname = "Q" + (qi + 1);
+            if (!only.isEmpty() && !only.contains(qname)) continue;
+            planOnce(cfg, provider, queries[qi], qname, topDown, false);
+          }
+        }
+    System.err.println("Warm-up: " + warmup + " rounds done");
+    // 5. Plan each query: `reps` untraced runs, then `reps` traced runs (the last traced run's trace is kept).
+    //    The first run of a query is slow (JIT, metadata handlers being generated), so the medians use runs 2..reps.
     for (int qi = 0; qi < queries.length; qi++) {
       String sql = queries[qi];
       String qname = "Q" + (qi + 1);
-      Planner planner = Frameworks.getPlanner(cfg);      // fresh planner per query
-      RelNode logical = planner.rel(planner.validate(planner.parse(sql))).project();
+      if (!only.isEmpty() && !only.contains(qname)) continue;
 
+         List<Long> untraced = new ArrayList<>(), traced = new ArrayList<>();
+        PlanRun last = null;
+        for (int r = 0; r < reps; r++) {            // alternate, so warm-up hits both equally
+          untraced.add(planOnce(cfg, provider, sql, qname, topDown, false).nanos);
+          last = planOnce(cfg, provider, sql, qname, topDown, true);
+          traced.add(last.nanos);
+        }
+
+      Map<String, Object> timing = new LinkedHashMap<>();
+      timing.put("reps", reps);
+      timing.put("planning_us_untraced_median", medianUs(untraced));
+      timing.put("planning_us_traced_median", medianUs(traced));
+      timing.put("planning_us_untraced_all", toUs(untraced));
+      timing.put("planning_us_traced_all", toUs(traced));
+      // Viewer: t_shown = t_us * replay_scale, so the replay lasts as long as untraced planning does
+      double tr = medianUs(traced), un = medianUs(untraced);
+      timing.put("replay_scale", tr > 0 ? un / tr : 1.0);
+      last.trace.setTimings(timing);
+      last.trace.write("../traces/calcite_" + qname + traceSuffix + ".json");
+      System.err.printf("%s: planning %.2f ms untraced, %.2f ms traced (median of runs 2..%d)%n",
+          qname, un / 1000, tr / 1000, reps);
+
+      System.out.println("\n### " + sql);
+      System.out.println(RelOptUtil.toString(last.best, SqlExplainLevel.ALL_ATTRIBUTES));
+    }
+  }
+
+  /** Result of one planning run. trace is null for untraced runs. */
+  static final class PlanRun {
+    final RelNode best; final long nanos; final SearchTrace trace;
+    PlanRun(RelNode best, long nanos, SearchTrace trace) { this.best = best; this.nanos = nanos; this.trace = trace; }
+  }
+
+  /** Parse, convert and plan sql once with a fresh planner. Only transform() is timed. */
+  static PlanRun planOnce(FrameworkConfig cfg, RelMetadataProvider provider, String sql, String qname,
+      boolean topDown, boolean withTrace) throws Exception {
+    Planner planner = Frameworks.getPlanner(cfg);      // fresh planner per run
+    try {
+      RelNode logical = planner.rel(planner.validate(planner.parse(sql))).project();
       logical.getCluster().setMetadataProvider(provider); // must be before transform()
       logical.getCluster().invalidateMetadataQuery();
 
-      // week 3: record the search (memo, rule firings, best-plan timeline)
       VolcanoPlanner vp = (VolcanoPlanner) logical.getCluster().getPlanner();
       if (topDown) vp.setTopDownOpt(true);
-      SearchTrace trace = new SearchTrace(vp, qname, sql);
-      vp.addListener(trace);
-
+      SearchTrace trace = null;
+      if (withTrace) {
+        trace = new SearchTrace(vp, qname, sql);       // its clock starts here
+        vp.addListener(trace);
+      }
+      long t0 = System.nanoTime();
       RelNode best = planner.transform(0,
           logical.getTraitSet().replace(EnumerableConvention.INSTANCE), logical);
-
-      trace.finish();
-      trace.write("../traces/calcite_" + qname + traceSuffix + ".json");
-
-      System.out.println("\n### " + sql);
-      System.out.println(RelOptUtil.toString(best, SqlExplainLevel.ALL_ATTRIBUTES));
+      long nanos = System.nanoTime() - t0;
+      if (trace != null) trace.finish();               // reads the memo, so before close()
+      return new PlanRun(best, nanos, trace);
+    } finally {
       planner.close();
     }
+  }
+
+  /** Median in microseconds, leaving out the first (warm-up) run when there is more than one. */
+  static double medianUs(List<Long> nanos) {
+    List<Long> xs = new ArrayList<>(nanos.size() > 1 ? nanos.subList(1, nanos.size()) : nanos);
+    Collections.sort(xs);
+    int n = xs.size();
+    double m = n % 2 == 1 ? xs.get(n / 2) : (xs.get(n / 2 - 1) + xs.get(n / 2)) / 2.0;
+    return m / 1000.0;
+  }
+
+  static List<Long> toUs(List<Long> nanos) {
+    List<Long> out = new ArrayList<>();
+    for (long x : nanos) out.add(x / 1000);
+    return out;
   }
 }

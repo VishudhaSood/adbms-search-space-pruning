@@ -4,63 +4,70 @@
   "sql" : "SELECT * FROM a WHERE x = 3",
   "events" : [ {
     "step" : 1,
-    "node" : 5,
+    "t_us" : 190,
+    "node" : 154237,
     "op" : "LogicalTableScan",
-    "subset_at_registration" : "rel#8:RelSubset#0.NONE.[]",
+    "subset_at_registration" : "rel#154240:RelSubset#0.NONE.[]",
     "rule" : "initial",
     "physical" : false,
     "result" : "registered"
   }, {
     "step" : 2,
-    "node" : 9,
+    "t_us" : 395,
+    "node" : 154241,
     "op" : "LogicalFilter",
-    "subset_at_registration" : "rel#10:RelSubset#1.NONE.[]",
+    "subset_at_registration" : "rel#154242:RelSubset#1.NONE.[]",
     "rule" : "initial",
     "physical" : false,
     "result" : "registered"
   }, {
     "step" : 3,
-    "node" : 11,
+    "t_us" : 435,
+    "node" : 154243,
     "op" : "LogicalProject",
-    "subset_at_registration" : "rel#12:RelSubset#2.NONE.[]",
+    "subset_at_registration" : "rel#154244:RelSubset#2.NONE.[]",
     "rule" : "initial",
     "physical" : false,
     "result" : "registered"
   }, {
     "step" : 4,
-    "node" : 14,
+    "t_us" : 518,
+    "node" : 154246,
     "op" : "AbstractConverter",
-    "subset_at_registration" : "rel#13:RelSubset#2.ENUMERABLE.[]",
+    "subset_at_registration" : "rel#154245:RelSubset#2.ENUMERABLE.[]",
     "rule" : "initial",
     "physical" : true,
     "result" : "registered"
   }, {
     "step" : 5,
-    "node" : 15,
+    "t_us" : 7056,
+    "node" : 154247,
     "op" : "EnumerableTableScan",
-    "subset_at_registration" : "rel#16:RelSubset#0.ENUMERABLE.[]",
+    "subset_at_registration" : "rel#154248:RelSubset#0.ENUMERABLE.[]",
     "rule" : "EnumerableTableScanRule(in:NONE,out:ENUMERABLE)",
     "physical" : true,
     "result" : "registered"
   }, {
     "step" : 6,
-    "node" : 17,
+    "t_us" : 7172,
+    "node" : 154249,
     "op" : "EnumerableFilter",
-    "subset_at_registration" : "rel#18:RelSubset#1.ENUMERABLE.[]",
+    "subset_at_registration" : "rel#154250:RelSubset#1.ENUMERABLE.[]",
     "rule" : "EnumerableFilterRule(in:NONE,out:ENUMERABLE)",
     "physical" : true,
     "result" : "registered"
   }, {
     "step" : 7,
-    "node" : 19,
+    "t_us" : 34247,
+    "node" : 154251,
     "op" : "EnumerableProject",
-    "subset_at_registration" : "rel#13:RelSubset#2.ENUMERABLE.[]",
+    "subset_at_registration" : "rel#154245:RelSubset#2.ENUMERABLE.[]",
     "rule" : "EnumerableProjectRule(in:NONE,out:ENUMERABLE)",
     "physical" : true,
     "result" : "registered"
   } ],
   "nodes" : [ {
-    "node" : 5,
+    "node" : 154237,
     "op" : "LogicalTableScan",
     "physical" : false,
     "set" : 0,
@@ -70,7 +77,7 @@
     "chosen" : false,
     "winner" : false
   }, {
-    "node" : 9,
+    "node" : 154241,
     "op" : "LogicalFilter",
     "physical" : false,
     "set" : 1,
@@ -83,7 +90,7 @@
     "chosen" : false,
     "winner" : false
   }, {
-    "node" : 11,
+    "node" : 154243,
     "op" : "LogicalProject",
     "physical" : false,
     "set" : 2,
@@ -96,7 +103,7 @@
     "chosen" : false,
     "winner" : false
   }, {
-    "node" : 14,
+    "node" : 154246,
     "op" : "AbstractConverter",
     "physical" : true,
     "set" : 2,
@@ -109,7 +116,7 @@
     "chosen" : false,
     "winner" : false
   }, {
-    "node" : 15,
+    "node" : 154247,
     "op" : "EnumerableTableScan",
     "physical" : true,
     "set" : 0,
@@ -121,7 +128,7 @@
     "chosen" : true,
     "winner" : true
   }, {
-    "node" : 17,
+    "node" : 154249,
     "op" : "EnumerableFilter",
     "physical" : true,
     "set" : 1,
@@ -136,7 +143,7 @@
     "chosen" : true,
     "winner" : true
   }, {
-    "node" : 19,
+    "node" : 154251,
     "op" : "EnumerableProject",
     "physical" : true,
     "set" : 2,
@@ -163,22 +170,23 @@
   } ],
   "timeline" : [ {
     "step" : 7,
+    "t_us" : 34359,
     "startup" : 0.0,
     "total" : 17.500001,
     "plan" : {
-      "node" : 19,
+      "node" : 154251,
       "op" : "EnumerableProject",
       "startup" : 0.0,
       "total" : 17.500001,
       "rows" : 100.0,
       "children" : [ {
-        "node" : 17,
+        "node" : 154249,
         "op" : "EnumerableFilter",
         "startup" : 0.0,
         "total" : 17.5,
         "rows" : 100.0,
         "children" : [ {
-          "node" : 15,
+          "node" : 154247,
           "op" : "EnumerableTableScan",
           "startup" : 0.0,
           "total" : 15.0,
@@ -189,6 +197,7 @@
       } ]
     }
   } ],
+  "firings" : [ [ 6892, "EnumerableTableScanRule(in:NONE,out:ENUMERABLE)", 1 ], [ 7111, "EnumerableFilterRule(in:NONE,out:ENUMERABLE)", 1 ], [ 24543, "EnumerableProjectRule(in:NONE,out:ENUMERABLE)", 1 ], [ 34478, "ExpandConversionRule", 0 ] ],
   "summary" : {
     "registered" : 7,
     "registered_logical" : 3,
@@ -198,22 +207,29 @@
     "relsets" : 3,
     "subsets" : 6,
     "winners" : 3,
-    "chosen" : 3
+    "chosen" : 3,
+    "planning_us_traced_this_run" : 34828,
+    "reps" : 3,
+    "planning_us_untraced_median" : 45105.8025,
+    "planning_us_traced_median" : 36629.66,
+    "planning_us_untraced_all" : [ 32910, 59254, 30957 ],
+    "planning_us_traced_all" : [ 69643, 38434, 34824 ],
+    "replay_scale" : 1.2314010695157966
   },
   "final_plan" : {
-    "node" : 19,
+    "node" : 154251,
     "op" : "EnumerableProject",
     "startup" : 0.0,
     "total" : 17.500001,
     "rows" : 100.0,
     "children" : [ {
-      "node" : 17,
+      "node" : 154249,
       "op" : "EnumerableFilter",
       "startup" : 0.0,
       "total" : 17.5,
       "rows" : 100.0,
       "children" : [ {
-        "node" : 15,
+        "node" : 154247,
         "op" : "EnumerableTableScan",
         "startup" : 0.0,
         "total" : 15.0,
@@ -222,5 +238,13 @@
         "children" : [ ]
       } ]
     } ]
+  },
+  "timing" : {
+    "reps" : 3,
+    "planning_us_untraced_median" : 45105.8025,
+    "planning_us_traced_median" : 36629.66,
+    "planning_us_untraced_all" : [ 32910, 59254, 30957 ],
+    "planning_us_traced_all" : [ 69643, 38434, 34824 ],
+    "replay_scale" : 1.2314010695157966
   }
 }

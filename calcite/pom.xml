@@ -20,6 +20,13 @@
       <artifactId>postgresql</artifactId>
       <version>42.7.4</version>
     </dependency>
+    <!-- Calcite pulls in slf4j-api 1.7, which can't see slf4j-simple 2.x ("Defaulting to NOP logger").
+         Declaring the 2.x API here wins Maven's dependency mediation, so Calcite's DEBUG logs work. -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.13</version>
+    </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
