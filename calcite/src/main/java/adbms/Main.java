@@ -34,6 +34,8 @@ import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.tools.*;
 import org.apache.calcite.util.ImmutableBitSet;
+import org.apache.calcite.rel.rules.JoinCommuteRule;
+import org.apache.calcite.rel.rules.JoinPushThroughJoinRule;
 
 public class Main {
   public static void main(String[] args) throws Exception {
@@ -60,8 +62,10 @@ public class Main {
     boolean sortEnforcer = !opts.contains("nosort");
     boolean nlj = opts.contains("nlj");
     boolean topDown = opts.contains("topdown");
+    boolean noCross = opts.contains("nocross");   // rules may not create new cross products
+    boolean exchange = opts.contains("exchange");  // add JoinPushThroughJoinRule (LEFT + RIGHT)
     // Trace files get a suffix per non-default option, so runs with different options never overwrite each other
-    String traceSuffix = (sortEnforcer ? "" : "_nosort") + (nlj ? "_nlj" : "") + (topDown ? "_topdown" : "");
+    String traceSuffix = (sortEnforcer ? "" : "_nosort") + (nlj ? "_nlj" : "") + (topDown ? "_topdown" : "") + (noCross ? "_nocross" : "") + (exchange ? "_exchange" : "");
     System.err.println("Options: sort enforcer=" + sortEnforcer + ", nested loop for equi-joins=" + nlj
         + ", top-down=" + topDown + ", reps=" + reps + (only.isEmpty() ? "" : ", only=" + only)
         + "; traces -> calcite_Q*" + traceSuffix + ".json");
@@ -79,7 +83,9 @@ public class Main {
       "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id",
       // Q9 = Q4 + ORDER BY on the next join's key: a merge join on b.id = c.b_id already outputs
       // rows sorted on b.id, so sort order becomes "interesting" (System R) / a required property (Volcano)
-      "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3 ORDER BY b.id"
+      "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3 ORDER BY b.id",
+            // Q10 = Q8 written in reverse join order: tests whether top-down's result depends on the starting tree
+      "SELECT * FROM d JOIN c ON c.id = d.c_id JOIN b ON b.id = c.b_id JOIN a ON a.id = b.a_id"
     };
 
     // 1. PostgreSQL connection, used only to read each table's columns
@@ -116,16 +122,18 @@ public class Main {
         DefaultRelMetadataProvider.INSTANCE));
 
     // 4. Rules (same as Day 1)
-    RelOptRule joinAssociate = JoinAssociateRule.Config.DEFAULT
+        JoinAssociateRule.Config assocCfg = JoinAssociateRule.Config.DEFAULT
         .withOperandSupplier(b0 -> b0.operand(LogicalJoin.class).inputs(
             b1 -> b1.operand(LogicalJoin.class).anyInputs(),
             b2 -> b2.operand(RelSubset.class).anyInputs()))
-        .as(JoinAssociateRule.Config.class)
-        .toRule();
+        .as(JoinAssociateRule.Config.class);
+    if (noCross) assocCfg = assocCfg.withAllowAlwaysTrueCondition(false);
+    RelOptRule joinAssociate = assocCfg.toRule();
+    RelOptRule joinCommute = noCross? JoinCommuteRule.Config.DEFAULT.withAllowAlwaysTrueCondition(false).toRule(): CoreRules.JOIN_COMMUTE;
 
     List<RelOptRule> ruleList = new ArrayList<>(List.of(
         CoreRules.FILTER_INTO_JOIN,
-        CoreRules.JOIN_COMMUTE,
+        joinCommute,
         joinAssociate,
         EnumerableRules.ENUMERABLE_TABLE_SCAN_RULE,
         EnumerableRules.ENUMERABLE_FILTER_RULE,
@@ -138,6 +146,10 @@ public class Main {
     // Without it the sorted subsets stay empty and every merge join has infinite cost.
     if (sortEnforcer) ruleList.add(AbstractConverter.ExpandConversionRule.INSTANCE);
     if (nlj) ruleList.add(EnumerableEquiNestedLoopJoinRule.INSTANCE);
+    if (exchange) {
+      ruleList.add(JoinPushThroughJoinRule.Config.LEFT.toRule());
+      ruleList.add(JoinPushThroughJoinRule.Config.RIGHT.toRule());
+    }
     RuleSet rules = RuleSets.ofList(ruleList);
 
     FrameworkConfig cfg = Frameworks.newConfigBuilder()
