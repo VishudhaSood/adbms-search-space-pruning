@@ -76,6 +76,7 @@ def main():
             "op": fd.get("type"),
             "inputs": [t for t in (tables(bms(fd.get("outer", "-"))), tables(bms(fd.get("inner", "-")))) if t],
             "startup": float(fd.get("startup", 0)),
+            "t": float(fd["t"]) if "t" in fd else None,
             "total": float(fd.get("total", 0)),
             "rows": float(fd.get("rows", 0)),
             "sorted": int(fd.get("keys", 0)) > 0,

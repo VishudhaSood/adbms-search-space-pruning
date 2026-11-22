@@ -20,8 +20,11 @@ fi
 while IFS='|' read -r Q SQL; do
   [ -z "$Q" ] && continue
   [ -n "$ONLY" ] && [ "$Q" != "$ONLY" ] && continue
-  # client_min_messages = log sends the TRACE lines to this psql session (stderr)
-  psql "$DB" -X -q -P pager=off -c "$SETS SET client_min_messages = log; EXPLAIN $SQL" \
+  # One session: a warm-up EXPLAIN first (cold caches make the first plan slow), then the traced one.
+  # log_min_messages = fatal keeps TRACE lines out of the server log; client_min_messages = log
+  # sends the second run's TRACE lines to this psql session (stderr).
+  psql "$DB" -X -q -P pager=off -c "$SETS SET log_min_messages = fatal; EXPLAIN $SQL" \
+       -c "SET client_min_messages = log; EXPLAIN $SQL" \
        > "$OUT/$Q.log" 2>&1
   psql "$DB" -X -q -P pager=off -c "$SETS EXPLAIN $SQL" > "$OUT/${Q}_explain.txt"
   SUFFIX=""; [ "$MODE" != "fair" ] && SUFFIX="_$MODE"
