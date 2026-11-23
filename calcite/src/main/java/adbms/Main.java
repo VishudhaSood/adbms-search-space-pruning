@@ -1,8 +1,18 @@
 package adbms;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.sql.DataSource;
 
 import org.apache.calcite.adapter.enumerable.EnumerableConvention;
@@ -11,7 +21,10 @@ import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.adapter.jdbc.JdbcSchema;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
+import org.apache.calcite.plan.Contexts;
 import org.apache.calcite.plan.RelOptRule;
+import org.apache.calcite.plan.hep.HepPlanner;
+import org.apache.calcite.plan.hep.HepProgramBuilder;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.plan.volcano.AbstractConverter;
 import org.apache.calcite.plan.volcano.RelSubset;
@@ -32,6 +45,8 @@ import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.sql2rel.SqlToRelConverter;
+import org.apache.calcite.util.CancelFlag;
 import org.apache.calcite.tools.*;
 import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.rel.rules.JoinCommuteRule;
@@ -44,31 +59,55 @@ public class Main {
     //   nlj     : also offer a nested-loop join for equality joins, as PostgreSQL does
     //   topdown : Calcite's top-down mode with cost-bound pruning (stretch)
     //   reps=N  : plan each query N times untraced and N times traced (default 5); timings = median of runs 2..N
-    //   only=Q8 : plan only these queries (comma-separated, e.g. only=Q4,Q8)
+    //   only=Q8 : plan only these queries (comma-separated, e.g. only=Q4,Q8 or only=1a,13a)
+    //   job     : plan the JOB queries in ../job_calcite (written by tools/job_for_calcite.py) on database imdb_s10,
+    //             stats ../stats/imdb_s10_tables.json, traces in ../traces/job/. Defaults for JOB: nocross + exchange
+    //             (option "cross" turns both off), predicates pushed down before the search, reps=1, warmup=1,
+    //             timeout=300. jobdir=<dir> reads another folder.
+    //   db=<name>      : PostgreSQL database to read the columns from (default test, or imdb_s10 with job)
+    //   timeout=<sec>  : give up planning a query after this many seconds (default 300 with job, otherwise none)
+    //   prepush        : push WHERE predicates into the joins before the search (on by default with job)
     // Example: mvn -q compile exec:java -Dexec.args="nlj"
-    String statsPath = "../stats/test_tables.json";
+    //          mvn -q compile exec:java -Dexec.args="job nosort only=1a,3a"
+    String statsPath = null;
     Set<String> opts = new HashSet<>();
-    int reps = 5;
-    int warmup = 10;
+    Integer repsOpt = null, warmupOpt = null, timeoutOpt = null;
     Set<String> only = new HashSet<>();
+    String jobDir = "../job_calcite";
+    String db = null;
     for (String a : args) {
       String lower = a.toLowerCase();
       if (a.endsWith(".json")) statsPath = a;
-      else if (lower.startsWith("reps=")) reps = Math.max(1, Integer.parseInt(lower.substring(5)));
-      else if (lower.startsWith("warmup=")) warmup = Math.max(0, Integer.parseInt(lower.substring(7)));
+      else if (lower.startsWith("reps=")) repsOpt = Math.max(1, Integer.parseInt(lower.substring(5)));
+      else if (lower.startsWith("warmup=")) warmupOpt = Math.max(0, Integer.parseInt(lower.substring(7)));
+      else if (lower.startsWith("timeout=")) timeoutOpt = Math.max(0, Integer.parseInt(lower.substring(8)));
       else if (lower.startsWith("only=")) only.addAll(Arrays.asList(a.substring(5).toUpperCase().split(",")));
+      else if (lower.startsWith("jobdir=")) { jobDir = a.substring(7); opts.add("job"); }
+      else if (lower.startsWith("db=")) db = a.substring(3);
       else opts.add(lower);
     }
+    boolean job = opts.contains("job");
+    int reps = repsOpt != null ? repsOpt : (job ? 1 : 5);
+    int warmup = warmupOpt != null ? warmupOpt : (job ? 1 : 10);
+    int timeoutSec = timeoutOpt != null ? timeoutOpt : (job ? 300 : 0);
+    if (statsPath == null) statsPath = job ? "../stats/imdb_s10_tables.json" : "../stats/test_tables.json";
+    if (db == null) db = job ? "imdb_s10" : "test";
     boolean sortEnforcer = !opts.contains("nosort");
     boolean nlj = opts.contains("nlj");
     boolean topDown = opts.contains("topdown");
-    boolean noCross = opts.contains("nocross");   // rules may not create new cross products
-    boolean exchange = opts.contains("exchange");  // add JoinPushThroughJoinRule (LEFT + RIGHT)
+    boolean jobDefaults = job && !opts.contains("cross");  // the JOB setting decided on 21 Nov (findings log)
+    boolean noCross = opts.contains("nocross") || jobDefaults;   // rules may not create new cross products
+    boolean exchange = opts.contains("exchange") || jobDefaults; // add JoinPushThroughJoinRule (LEFT + RIGHT)
+    boolean prepush = job || opts.contains("prepush");          // push WHERE predicates down before the search
+    String traceDir = job ? "../traces/job/" : "../traces/";
+    Files.createDirectories(Paths.get(traceDir));
     // Trace files get a suffix per non-default option, so runs with different options never overwrite each other
     String traceSuffix = (sortEnforcer ? "" : "_nosort") + (nlj ? "_nlj" : "") + (topDown ? "_topdown" : "") + (noCross ? "_nocross" : "") + (exchange ? "_exchange" : "");
     System.err.println("Options: sort enforcer=" + sortEnforcer + ", nested loop for equi-joins=" + nlj
-        + ", top-down=" + topDown + ", reps=" + reps + (only.isEmpty() ? "" : ", only=" + only)
-        + "; traces -> calcite_Q*" + traceSuffix + ".json");
+        + ", top-down=" + topDown + ", nocross=" + noCross + ", exchange=" + exchange + ", prepush=" + prepush
+        + ", reps=" + reps + ", warmup=" + warmup + ", timeout=" + (timeoutSec > 0 ? timeoutSec + "s" : "none")
+        + (only.isEmpty() ? "" : ", only=" + only) + "; db=" + db + ", stats=" + statsPath
+        + "; traces -> " + traceDir + "calcite_<query>" + traceSuffix + ".json");
     PgStats stats = PgStats.load(statsPath);
 
     String[] queries = {
@@ -87,12 +126,30 @@ public class Main {
             // Q10 = Q8 written in reverse join order: tests whether top-down's result depends on the starting tree
       "SELECT * FROM d JOIN c ON c.id = d.c_id JOIN b ON b.id = c.b_id JOIN a ON a.id = b.a_id"
     };
+    List<String[]> queryList = new ArrayList<>();   // {name, sql}
+    if (job) {
+      List<Path> files;
+      try (var stream = Files.list(Paths.get(jobDir))) {
+        files = stream.filter(f -> f.getFileName().toString().matches("\\d+[a-z]\\.sql"))
+            .sorted(Comparator.comparing((Path f) -> Integer.parseInt(f.getFileName().toString().replaceAll("\\D.*", "")))
+                .thenComparing(f -> f.getFileName().toString()))
+            .toList();
+      }
+      if (files.isEmpty()) throw new IllegalStateException("no JOB queries in " + jobDir
+          + "; run: python3 tools/job_for_calcite.py job job_calcite");
+      for (Path f : files) {
+        String sql = Files.readString(f).trim().replaceAll(";\\s*$", "");
+        queryList.add(new String[] {f.getFileName().toString().replace(".sql", ""), sql});
+      }
+    } else {
+      for (int i = 0; i < queries.length; i++) queryList.add(new String[] {"Q" + (i + 1), queries[i]});
+    }
 
     // 1. PostgreSQL connection, used only to read each table's columns
     Connection conn = DriverManager.getConnection("jdbc:calcite:");
     SchemaPlus root = conn.unwrap(CalciteConnection.class).getRootSchema();
     DataSource ds = JdbcSchema.dataSource(
-        "jdbc:postgresql://localhost:5432/test", "org.postgresql.Driver", "dev", "");
+        "jdbc:postgresql://localhost:5432/" + db, "org.postgresql.Driver", "dev", "");
     JdbcSchema jdbc = JdbcSchema.create(root, "pg", ds, null, "public");
 
     // 2. Our own tables: PG's columns + PG's row counts (and keys where n_distinct = -1)
@@ -108,6 +165,18 @@ public class Main {
         if (c != null && c.nDistinctRaw == -1) keys.add(ImmutableBitSet.of(f.getIndex()));
       }
       statTables.put(e.getKey(), new StatTable(pgTable, e.getValue().reltuples, keys));
+    }
+    // JOB: one table per "<table>__<alias>" name in the queries (same columns and stats as <table>), so every
+    // scan in Calcite's plan keeps its FROM-list alias, also in self-joins. See tools/job_for_calcite.py.
+    Pattern aliasTable = Pattern.compile("\"([a-z_]+?)__([a-z0-9_]+)\"");
+    for (String[] q : queryList) {
+      Matcher m = aliasTable.matcher(q[1]);
+      while (m.find()) {
+        String full = m.group(1) + "__" + m.group(2);
+        Table base = statTables.get(m.group(1));
+        if (base == null) System.err.println("No stats for table " + m.group(1) + " (used as " + full + ")");
+        else statTables.putIfAbsent(full, base);
+      }
     }
     root.add("pgstats", new AbstractSchema() {
       @Override protected Map<String, Table> getTableMap() { return statTables; }
@@ -140,7 +209,8 @@ public class Main {
         EnumerableRules.ENUMERABLE_PROJECT_RULE,
         EnumerableRules.ENUMERABLE_JOIN_RULE,
         EnumerableRules.ENUMERABLE_MERGE_JOIN_RULE,
-        EnumerableRules.ENUMERABLE_SORT_RULE));
+        EnumerableRules.ENUMERABLE_SORT_RULE,
+        EnumerableRules.ENUMERABLE_AGGREGATE_RULE));   // JOB queries are SELECT MIN(...)
     // Merge join asks for sorted inputs through AbstractConverter placeholders. This rule turns each
     // placeholder into a LogicalSort, which ENUMERABLE_SORT_RULE then makes an EnumerableSort.
     // Without it the sorted subsets stay empty and every merge join has infinite cost.
@@ -155,32 +225,50 @@ public class Main {
     FrameworkConfig cfg = Frameworks.newConfigBuilder()
         .defaultSchema(root.getSubSchema("pgstats"))
         .parserConfig(SqlParser.config().withCaseSensitive(false))
+        // Long IN lists stay predicates; by default Calcite turns IN lists of 20+ values into a join with VALUES
+        .sqlToRelConverterConfig(SqlToRelConverter.config().withInSubQueryThreshold(Integer.MAX_VALUE))
+        .context(Contexts.of(new CancelFlag(CANCEL)))       // lets timeout=<sec> stop a planner
         .programs(Programs.ofRules(rules))
         .costFactory(new PgCostFactory())   // PG-style cost model (Vishudha)
         .build();
-        // 4b. Warm up the JVM: plan every selected query `warmup` times, untraced, before measuring anything.
-        for (int w = 0; w < warmup; w++) {
-          for (int qi = 0; qi < queries.length; qi++) {
-            String qname = "Q" + (qi + 1);
-            if (!only.isEmpty() && !only.contains(qname)) continue;
-            planOnce(cfg, provider, queries[qi], qname, topDown, false);
-          }
+    // 4b. Warm up the JVM: plan every selected query `warmup` times, untraced, before measuring anything.
+    Set<String> failed = new LinkedHashSet<>();
+    for (int w = 0; w < warmup; w++) {
+      for (String[] q : queryList) {
+        if (!only.isEmpty() && !only.contains(q[0].toUpperCase())) continue;
+        if (failed.contains(q[0])) continue;
+        try {
+          planOnce(cfg, provider, q[1], q[0], topDown, prepush, timeoutSec, false);
+        } catch (Throwable e) {                       // also OutOfMemoryError: record it and go on
+          failed.add(q[0]);
+          System.gc();
+          System.err.println(q[0] + ": FAILED in warm-up: " + describe(e));
         }
+      }
+    }
     System.err.println("Warm-up: " + warmup + " rounds done");
     // 5. Plan each query: `reps` untraced runs, then `reps` traced runs (the last traced run's trace is kept).
     //    The first run of a query is slow (JIT, metadata handlers being generated), so the medians use runs 2..reps.
-    for (int qi = 0; qi < queries.length; qi++) {
-      String sql = queries[qi];
-      String qname = "Q" + (qi + 1);
-      if (!only.isEmpty() && !only.contains(qname)) continue;
+    for (String[] q : queryList) {
+      String qname = q[0], sql = q[1];
+      if (!only.isEmpty() && !only.contains(qname.toUpperCase())) continue;
+      if (failed.contains(qname)) continue;
 
-         List<Long> untraced = new ArrayList<>(), traced = new ArrayList<>();
-        PlanRun last = null;
+      List<Long> untraced = new ArrayList<>(), traced = new ArrayList<>();
+      PlanRun last = null;
+      try {
         for (int r = 0; r < reps; r++) {            // alternate, so warm-up hits both equally
-          untraced.add(planOnce(cfg, provider, sql, qname, topDown, false).nanos);
-          last = planOnce(cfg, provider, sql, qname, topDown, true);
+          untraced.add(planOnce(cfg, provider, sql, qname, topDown, prepush, timeoutSec, false).nanos);
+          last = planOnce(cfg, provider, sql, qname, topDown, prepush, timeoutSec, true);
           traced.add(last.nanos);
         }
+      } catch (Throwable e) {                         // also OutOfMemoryError: record it and go on
+        last = null;
+        System.gc();
+        failed.add(qname);
+        System.err.println(qname + ": FAILED: " + describe(e));
+        continue;
+      }
 
       Map<String, Object> timing = new LinkedHashMap<>();
       timing.put("reps", reps);
@@ -192,14 +280,34 @@ public class Main {
       double tr = medianUs(traced), un = medianUs(untraced);
       timing.put("replay_scale", tr > 0 ? un / tr : 1.0);
       last.trace.setTimings(timing);
-      last.trace.write("../traces/calcite_" + qname + traceSuffix + ".json");
-      System.err.printf("%s: planning %.2f ms untraced, %.2f ms traced (median of runs 2..%d)%n",
-          qname, un / 1000, tr / 1000, reps);
+      last.trace.write(traceDir + "calcite_" + qname + traceSuffix + ".json");
+      System.err.printf("%s: planning %.2f ms untraced, %.2f ms traced (%s)%n",
+          qname, un / 1000, tr / 1000, reps > 1 ? "median of runs 2.." + reps : "1 run");
 
-      System.out.println("\n### " + sql);
+      System.out.println("\n### " + qname + ": " + sql);
       System.out.println(RelOptUtil.toString(last.best, SqlExplainLevel.ALL_ATTRIBUTES));
     }
+    if (!failed.isEmpty()) System.err.println("Not planned (" + failed.size() + "): " + String.join(" ", failed));
+    TIMER.shutdownNow();
   }
+
+  /** Short description of a planning failure; a timeout shows as "timeout". */
+  static String describe(Throwable e) {
+    for (Throwable t = e; t != null; t = t.getCause()) {
+      if (t.getClass().getSimpleName().contains("Timeout")) return "timeout";
+      if (t instanceof OutOfMemoryError) return "out of memory (" + t.getMessage() + "); try a bigger heap: MAVEN_OPTS=-Xmx<N>g";
+    }
+    String m = String.valueOf(e.getMessage());
+    return e.getClass().getSimpleName() + ": " + (m.length() > 300 ? m.substring(0, 300) + "..." : m);
+  }
+
+  /** Set by a timer when a query's planning time runs out; VolcanoPlanner checks it and stops. */
+  static final AtomicBoolean CANCEL = new AtomicBoolean(false);
+  static final ScheduledExecutorService TIMER = Executors.newSingleThreadScheduledExecutor(r -> {
+    Thread t = new Thread(r, "planning-timeout");
+    t.setDaemon(true);
+    return t;
+  });
 
   /** Result of one planning run. trace is null for untraced runs. */
   static final class PlanRun {
@@ -209,7 +317,7 @@ public class Main {
 
   /** Parse, convert and plan sql once with a fresh planner. Only transform() is timed. */
   static PlanRun planOnce(FrameworkConfig cfg, RelMetadataProvider provider, String sql, String qname,
-      boolean topDown, boolean withTrace) throws Exception {
+      boolean topDown, boolean prepush, int timeoutSec, boolean withTrace) throws Exception {
     Planner planner = Frameworks.getPlanner(cfg);      // fresh planner per run
     try {
       RelNode logical = planner.rel(planner.validate(planner.parse(sql))).project();
@@ -223,9 +331,26 @@ public class Main {
         trace = new SearchTrace(vp, qname, sql);       // its clock starts here
         vp.addListener(trace);
       }
+      CANCEL.set(false);
+      ScheduledFuture<?> timer = timeoutSec > 0
+          ? TIMER.schedule(() -> CANCEL.set(true), timeoutSec, TimeUnit.SECONDS) : null;
       long t0 = System.nanoTime();
-      RelNode best = planner.transform(0,
-          logical.getTraitSet().replace(EnumerableConvention.INSTANCE), logical);
+      RelNode start = logical;
+      if (prepush) {
+        // Push WHERE predicates into the joins and onto the scans first (as PostgreSQL does before its join
+        // search). JOB writes all predicates in WHERE over a comma FROM list, so without this the starting tree
+        // is a stack of cross products under one big filter.
+        HepPlanner hep = new HepPlanner(new HepProgramBuilder().addRuleInstance(CoreRules.FILTER_INTO_JOIN).build());
+        hep.setRoot(logical);
+        start = hep.findBestExp();
+      }
+      RelNode best;
+      try {
+        best = planner.transform(0, start.getTraitSet().replace(EnumerableConvention.INSTANCE), start);
+      } finally {
+        if (timer != null) timer.cancel(false);
+        CANCEL.set(false);
+      }
       long nanos = System.nanoTime() - t0;
       if (trace != null) trace.finish();               // reads the memo, so before close()
       return new PlanRun(best, nanos, trace);

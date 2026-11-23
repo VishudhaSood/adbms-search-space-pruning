@@ -42,7 +42,7 @@ public class PgCostModel implements BuiltInMetadata.NonCumulativeCost.Handler {
   /** cost_seqscan: relpages * seq_page_cost + reltuples * cpu_tuple_cost (filter is a separate node). */
   public RelOptCost getNonCumulativeCost(TableScan scan, RelMetadataQuery mq) {
     List<String> name = scan.getTable().getQualifiedName();
-    PgStats.Table t = stats.tables.get(name.get(name.size() - 1).toLowerCase());
+    PgStats.Table t = stats.table(name.get(name.size() - 1));
     if (t == null) return getNonCumulativeCost((RelNode) scan, mq);
     return new PgCost(t.reltuples, 0, t.relpages * seqPage + t.reltuples * cpuTuple);
   }
