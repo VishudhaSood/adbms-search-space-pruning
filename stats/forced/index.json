@@ -1,0 +1,263 @@
+[
+ {
+  "query": "Q1",
+  "modes": [
+   "(default: sorts)",
+   "_nlj",
+   "_nosort",
+   "_nosort_nocross",
+   "_nosort_nocross_exchange",
+   "_nosort_topdown",
+   "_nosort_topdown_nocross",
+   "_nosort_topdown_nocross_exchange",
+   "_topdown"
+  ],
+  "file": "stats/forced/Q1_default.sql",
+  "join_order": "a",
+  "calcite_cost": 17.5,
+  "pg_join_order": "a",
+  "vs_pg": "same",
+  "forceable": true,
+  "cross_products": [],
+  "preamble": "LOAD 'pg_lab';\nSET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\nSET max_parallel_workers_per_gather = 0; SET geqo = off;\n",
+  "hint": "/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)\n   SeqScan(a) */",
+  "sql": "SELECT * FROM a WHERE x = 3"
+ },
+ {
+  "query": "Q2",
+  "modes": [
+   "(default: sorts)",
+   "_nlj",
+   "_nosort",
+   "_nosort_nocross",
+   "_nosort_nocross_exchange",
+   "_nosort_topdown",
+   "_nosort_topdown_nocross",
+   "_nosort_topdown_nocross_exchange",
+   "_topdown"
+  ],
+  "file": "stats/forced/Q2_default.sql",
+  "join_order": "(b a)",
+  "calcite_cost": 118.68,
+  "pg_join_order": "(b a)",
+  "vs_pg": "same",
+  "forceable": true,
+  "cross_products": [],
+  "preamble": "LOAD 'pg_lab';\nSET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\nSET max_parallel_workers_per_gather = 0; SET geqo = off;\n",
+  "hint": "/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)\n   JoinOrder((b a))  HashJoin(b a)\n   SeqScan(a) SeqScan(b) */",
+  "sql": "SELECT * FROM a JOIN b ON a.id = b.a_id"
+ },
+ {
+  "query": "Q3",
+  "modes": [
+   "(default: sorts)",
+   "_nlj",
+   "_nosort",
+   "_nosort_nocross",
+   "_nosort_nocross_exchange",
+   "_nosort_topdown",
+   "_nosort_topdown_nocross",
+   "_nosort_topdown_nocross_exchange",
+   "_topdown"
+  ],
+  "file": "stats/forced/Q3_default.sql",
+  "join_order": "(b a)",
+  "calcite_cost": 109.93,
+  "pg_join_order": "(b a)",
+  "vs_pg": "same",
+  "forceable": true,
+  "cross_products": [],
+  "preamble": "LOAD 'pg_lab';\nSET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\nSET max_parallel_workers_per_gather = 0; SET geqo = off;\n",
+  "hint": "/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)\n   JoinOrder((b a))  HashJoin(b a)\n   SeqScan(a) SeqScan(b) */",
+  "sql": "SELECT * FROM a JOIN b ON a.id = b.a_id WHERE a.x = 3"
+ },
+ {
+  "query": "Q4",
+  "modes": [
+   "(default: sorts)",
+   "_nlj",
+   "_nosort",
+   "_nosort_nocross",
+   "_nosort_nocross_exchange",
+   "_nosort_topdown",
+   "_nosort_topdown_nocross",
+   "_nosort_topdown_nocross_exchange",
+   "_topdown"
+  ],
+  "file": "stats/forced/Q4_default.sql",
+  "join_order": "(c (b a))",
+  "calcite_cost": 520.18,
+  "pg_join_order": "(c (b a))",
+  "vs_pg": "same",
+  "forceable": true,
+  "cross_products": [],
+  "preamble": "LOAD 'pg_lab';\nSET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\nSET max_parallel_workers_per_gather = 0; SET geqo = off;\n",
+  "hint": "/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)\n   JoinOrder((c (b a)))  HashJoin(b a)  HashJoin(c b a)\n   SeqScan(a) SeqScan(b) SeqScan(c) */",
+  "sql": "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3"
+ },
+ {
+  "query": "Q5",
+  "modes": [
+   "(default: sorts)",
+   "_nlj",
+   "_nosort",
+   "_nosort_nocross",
+   "_nosort_nocross_exchange",
+   "_nosort_topdown",
+   "_nosort_topdown_nocross",
+   "_nosort_topdown_nocross_exchange",
+   "_topdown"
+  ],
+  "file": "stats/forced/Q5_default.sql",
+  "join_order": "((c b) a)",
+  "calcite_cost": 582.27,
+  "pg_join_order": "((c b) a)",
+  "vs_pg": "same",
+  "forceable": true,
+  "cross_products": [],
+  "preamble": "LOAD 'pg_lab';\nSET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\nSET max_parallel_workers_per_gather = 0; SET geqo = off;\n",
+  "hint": "/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)\n   JoinOrder(((c b) a))  HashJoin(c b)  HashJoin(c b a)\n   SeqScan(a) SeqScan(b) SeqScan(c) */",
+  "sql": "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id"
+ },
+ {
+  "query": "Q6",
+  "modes": [
+   "(default: sorts)",
+   "_nlj",
+   "_nosort",
+   "_nosort_nocross",
+   "_nosort_nocross_exchange",
+   "_nosort_topdown",
+   "_nosort_topdown_nocross",
+   "_nosort_topdown_nocross_exchange",
+   "_topdown"
+  ],
+  "file": "stats/forced/Q6_default.sql",
+  "join_order": "(d (c (b a)))",
+  "calcite_cost": 747.68,
+  "pg_join_order": "(d (c (b a)))",
+  "vs_pg": "same",
+  "forceable": true,
+  "cross_products": [],
+  "preamble": "LOAD 'pg_lab';\nSET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\nSET max_parallel_workers_per_gather = 0; SET geqo = off;\n",
+  "hint": "/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)\n   JoinOrder((d (c (b a))))  HashJoin(b a)  HashJoin(c b a)  HashJoin(d c b a)\n   SeqScan(a) SeqScan(b) SeqScan(c) SeqScan(d) */",
+  "sql": "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id WHERE a.x = 3"
+ },
+ {
+  "query": "Q7",
+  "modes": [
+   "_nosort_nocross",
+   "_nosort_topdown_nocross"
+  ],
+  "file": "stats/forced/Q7_nosort_nocross.sql",
+  "join_order": "((d (c (b a))) e)",
+  "calcite_cost": 770.68,
+  "pg_join_order": "(d (c (b (e a))))",
+  "vs_pg": "different",
+  "forceable": true,
+  "cross_products": [],
+  "preamble": "LOAD 'pg_lab';\nSET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\nSET max_parallel_workers_per_gather = 0; SET geqo = off;\n",
+  "hint": "/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)\n   JoinOrder(((d (c (b a))) e))  HashJoin(b a)  HashJoin(c b a)  HashJoin(d c b a)  HashJoin(d c b a e)\n   SeqScan(a) SeqScan(b) SeqScan(c) SeqScan(d) SeqScan(e) */",
+  "sql": "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id JOIN e ON a.id = e.a_id WHERE a.x = 3"
+ },
+ {
+  "query": "Q7",
+  "modes": [
+   "_nosort",
+   "_nosort_nocross_exchange",
+   "_nosort_topdown",
+   "_nosort_topdown_nocross_exchange",
+   "_topdown"
+  ],
+  "file": "stats/forced/Q7_nosort.sql",
+  "join_order": "(d (c (b (e a))))",
+  "calcite_cost": 735.06,
+  "pg_join_order": "(d (c (b (e a))))",
+  "vs_pg": "same",
+  "forceable": true,
+  "cross_products": [],
+  "preamble": "LOAD 'pg_lab';\nSET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\nSET max_parallel_workers_per_gather = 0; SET geqo = off;\n",
+  "hint": "/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)\n   JoinOrder((d (c (b (e a)))))  HashJoin(e a)  HashJoin(b e a)  HashJoin(c b e a)  HashJoin(d c b e a)\n   SeqScan(a) SeqScan(b) SeqScan(c) SeqScan(d) SeqScan(e) */",
+  "sql": "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id JOIN e ON a.id = e.a_id WHERE a.x = 3"
+ },
+ {
+  "query": "Q8",
+  "modes": [
+   "_nosort_topdown",
+   "_topdown"
+  ],
+  "file": "stats/forced/Q8_nosort_topdown.sql",
+  "join_order": "(((c b) a) d)",
+  "calcite_cost": 1037.27,
+  "pg_join_order": "(((d c) b) a)",
+  "vs_pg": "different",
+  "forceable": true,
+  "cross_products": [],
+  "preamble": "LOAD 'pg_lab';\nSET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\nSET max_parallel_workers_per_gather = 0; SET geqo = off;\n",
+  "hint": "/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)\n   JoinOrder((((c b) a) d))  HashJoin(c b)  HashJoin(c b a)  HashJoin(c b a d)\n   SeqScan(a) SeqScan(b) SeqScan(c) SeqScan(d) */",
+  "sql": "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id"
+ },
+ {
+  "query": "Q8",
+  "modes": [
+   "(default: sorts)",
+   "_nlj",
+   "_nosort",
+   "_nosort_nocross",
+   "_nosort_nocross_exchange",
+   "_nosort_topdown_nocross",
+   "_nosort_topdown_nocross_exchange"
+  ],
+  "file": "stats/forced/Q8_default.sql",
+  "join_order": "(((d c) b) a)",
+  "calcite_cost": 960.88,
+  "pg_join_order": "(((d c) b) a)",
+  "vs_pg": "same",
+  "forceable": true,
+  "cross_products": [],
+  "preamble": "LOAD 'pg_lab';\nSET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\nSET max_parallel_workers_per_gather = 0; SET geqo = off;\n",
+  "hint": "/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)\n   JoinOrder((((d c) b) a))  HashJoin(d c)  HashJoin(d c b)  HashJoin(d c b a)\n   SeqScan(a) SeqScan(b) SeqScan(c) SeqScan(d) */",
+  "sql": "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id"
+ },
+ {
+  "query": "Q9",
+  "modes": [
+   "(default: sorts)",
+   "_nlj",
+   "_nosort",
+   "_nosort_nocross",
+   "_nosort_nocross_exchange",
+   "_nosort_topdown",
+   "_nosort_topdown_nocross",
+   "_nosort_topdown_nocross_exchange",
+   "_topdown"
+  ],
+  "file": "stats/forced/Q9_default.sql",
+  "join_order": "(c (b a))",
+  "calcite_cost": 634.84,
+  "pg_join_order": "(c (b a))",
+  "vs_pg": "same",
+  "forceable": true,
+  "cross_products": [],
+  "preamble": "LOAD 'pg_lab';\nSET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\nSET max_parallel_workers_per_gather = 0; SET geqo = off;\n",
+  "hint": "/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)\n   JoinOrder((c (b a)))  HashJoin(b a)  HashJoin(c b a)\n   SeqScan(a) SeqScan(b) SeqScan(c) */",
+  "sql": "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3 ORDER BY b.id"
+ },
+ {
+  "query": "Q10",
+  "modes": [
+   "_nosort_topdown",
+   "_nosort_topdown_nocross"
+  ],
+  "file": "stats/forced/Q10_nosort_topdown.sql",
+  "join_order": "(((d c) b) a)",
+  "calcite_cost": 960.88,
+  "pg_join_order": "(((d c) b) a)",
+  "vs_pg": "same",
+  "forceable": true,
+  "cross_products": [],
+  "preamble": "LOAD 'pg_lab';\nSET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\nSET max_parallel_workers_per_gather = 0; SET geqo = off;\n",
+  "hint": "/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)\n   JoinOrder((((d c) b) a))  HashJoin(d c)  HashJoin(d c b)  HashJoin(d c b a)\n   SeqScan(a) SeqScan(b) SeqScan(c) SeqScan(d) */",
+  "sql": "SELECT * FROM d JOIN c ON c.id = d.c_id JOIN b ON b.id = c.b_id JOIN a ON a.id = b.a_id"
+ }
+]
