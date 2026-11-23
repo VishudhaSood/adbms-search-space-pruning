@@ -54,6 +54,15 @@ public class SearchTrace implements RelOptListener {
   private int step = 0, rulesAttempted = 0, rulesProduced = 0;
   private double lastBestTotal = Double.NaN;
 
+  /**
+   * Above this many registered nodes the trace switches to "light": it keeps counting, but drops per-node events,
+   * rule firings and the per-node list (cost, rows, inputs) that it would write at the end. What stays: the summary
+   * counts, the table set of every RelSet, subsets and winners, the best-plan timeline and the final plan.
+   * Needed for big JOB queries, whose memo is millions of nodes. Change with -Dtrace.limit=N (0 = never light).
+   */
+  private static final int DETAIL_LIMIT = Integer.getInteger("trace.limit", 100_000);
+  private boolean light = false;
+
   public SearchTrace(VolcanoPlanner planner, String query, String sql) {
     this.planner = planner;
     this.query = query;
@@ -66,8 +75,16 @@ public class SearchTrace implements RelOptListener {
     RelNode rel = e.getRel();
     if (rel == null || rel instanceof RelSubset || nodes.containsKey(rel.getId())) return;
     nodes.put(rel.getId(), rel);
+    ++step;
+    if (!light && DETAIL_LIMIT > 0 && step > DETAIL_LIMIT) {
+      light = true;                 // from here on: counts only (see DETAIL_LIMIT)
+      events.clear();
+      firings.clear();
+      currentFiring = null;
+    }
+    if (light) return;
     Map<String, Object> ev = new LinkedHashMap<>();
-    ev.put("step", ++step);
+    ev.put("step", step);
     ev.put("t_us", us());
     ev.put("node", rel.getId());
     ev.put("op", rel.getRelTypeName());
@@ -83,8 +100,10 @@ public class SearchTrace implements RelOptListener {
     if (e.isBefore()) {
       rulesAttempted++;
       currentRule = e.getRuleCall().getRule().toString();
-      currentFiring = new Object[] {us(), currentRule, 0};
-      firings.add(currentFiring);
+      if (!light) {
+        currentFiring = new Object[] {us(), currentRule, 0};
+        firings.add(currentFiring);
+      }
     } else {
       currentRule = "initial";
       currentFiring = null;
@@ -166,6 +185,18 @@ public class SearchTrace implements RelOptListener {
     List<Map<String, Object>> nodeList = new ArrayList<>();
     for (RelNode rel : nodes.values()) {
       RelSubset s = planner.getSubset(rel);
+      if (light) {                          // counts and table sets only, no per-node detail
+        if (s == null) continue;
+        String[] st = parseSubset(s);
+        int set = Integer.parseInt(st[0]);
+        if (!setTables.containsKey(set)) setTables.put(set, tablesOf(rel, mq));
+        String key = set + "|" + st[1];
+        if (!subsetWinner.containsKey(key)) {
+          RelNode best = s.getBest();
+          subsetWinner.put(key, best == null ? null : best.getId());
+        }
+        continue;
+      }
       Map<String, Object> n = new LinkedHashMap<>();
       n.put("node", rel.getId());
       n.put("op", rel.getRelTypeName());
@@ -230,9 +261,12 @@ public class SearchTrace implements RelOptListener {
     summary.put("winners", subsetWinner.values().stream().filter(Objects::nonNull).distinct().count());
     summary.put("chosen", chosen.size());
     summary.put("planning_us_traced_this_run", planningUs);
+    summary.put("light_trace", light);      // true: events, firings and nodes were dropped (DETAIL_LIMIT)
 
     out.put("optimizer", "calcite");
     out.put("query", query);
+    out.put("light_trace", light);
+    out.put("trace_detail_limit", DETAIL_LIMIT);
     out.put("sql", sql);
     out.put("events", events);
     out.put("nodes", nodeList);

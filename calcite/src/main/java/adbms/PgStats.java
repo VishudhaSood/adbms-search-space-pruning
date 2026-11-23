@@ -36,6 +36,14 @@ public class PgStats {
       Table tbl = new Table();
       tbl.reltuples = t.get("reltuples").asDouble();
       tbl.relpages = t.get("relpages").asDouble();
+      if (tbl.reltuples <= 0) {
+        // Never ANALYZEd (PostgreSQL reports -1) or empty: only for smoke tests on a schema-only database.
+        // Real runs must use stats from an ANALYZEd database.
+        System.err.println("WARNING: no row count for table " + t.get("table").asText()
+            + " (not ANALYZEd?); using 1000 rows / 10 pages so planning can run");
+        tbl.reltuples = 1000;
+        tbl.relpages = Math.max(tbl.relpages, 10);
+      }
       for (JsonNode c : t.get("columns")) {
         Column col = new Column();
         col.nullFrac = c.get("null_frac").asDouble();
@@ -62,8 +70,29 @@ public class PgStats {
     return out;
   }
 
+  /**
+   * JOB queries name each FROM item "<table>__<alias>" (see tools/job_for_calcite.py), so scans keep their alias.
+   * Statistics belong to the base table: "title__t1" -> "title". Names without "__" are returned lower-cased.
+   */
+  public static String baseName(String name) {
+    String n = name.toLowerCase();
+    int i = n.indexOf("__");
+    return i > 0 ? n.substring(0, i) : n;
+  }
+
+  /** The alias part of "<table>__<alias>", or the name itself when there is none. */
+  public static String aliasName(String name) {
+    String n = name.toLowerCase();
+    int i = n.indexOf("__");
+    return i > 0 ? n.substring(i + 2) : n;
+  }
+
+  public Table table(String name) {
+    return tables.get(baseName(name));
+  }
+
   public Column column(String table, String col) {
-    Table t = tables.get(table.toLowerCase());
+    Table t = table(table);
     return t == null ? null : t.columns.get(col.toLowerCase());
   }
 
@@ -71,7 +100,7 @@ public class PgStats {
   public double nDistinct(String table, String col) {
     Column c = column(table, col);
     if (c == null) return -1;
-    double rows = tables.get(table.toLowerCase()).reltuples;
+    double rows = table(table).reltuples;
     return c.nDistinctRaw < 0 ? -c.nDistinctRaw * rows : c.nDistinctRaw;
   }
 }
