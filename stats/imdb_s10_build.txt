@@ -1,0 +1,123 @@
+Timing is on.
+SET
+Time: 0.767 ms
+DROP SCHEMA
+Time: 2.639 ms
+CREATE SCHEMA
+Time: 9.373 ms
+SELECT 1
+Time: 52.137 ms
+CREATE FUNCTION
+Time: 10.800 ms
+Time: 7.774 ms
+DO
+Time: 171.731 ms
+INSERT 0 252832
+Time: 7155.472 ms (00:07.155)
+INSERT 0 260387
+Time: 5488.695 ms (00:05.489)
+INSERT 0 1478148
+Time: 38494.602 ms (00:38.495)
+INSERT 0 138249
+Time: 3600.164 ms (00:03.600)
+INSERT 0 446651
+Time: 7649.008 ms (00:07.649)
+INSERT 0 3620154
+Time: 88591.344 ms (01:28.591)
+INSERT 0 13421
+Time: 590.710 ms
+INSERT 0 36048
+Time: 1472.627 ms (00:01.473)
+INSERT 0 3188
+Time: 134.289 ms
+INSERT 0 1032446
+Time: 64823.272 ms (01:04.823)
+INSERT 0 532440
+Time: 28418.782 ms (00:28.419)
+INSERT 0 57707
+Time: 2432.582 ms (00:02.433)
+INSERT 0 51256
+Time: 2006.743 ms (00:02.007)
+INSERT 0 462063
+Time: 19589.139 ms (00:19.589)
+INSERT 0 2043846
+Time: 85357.357 ms (01:25.357)
+INSERT 0 113
+Time: 7.538 ms
+INSERT 0 7
+Time: 6.940 ms
+INSERT 0 12
+Time: 7.332 ms
+INSERT 0 4
+Time: 5.647 ms
+INSERT 0 4
+Time: 6.362 ms
+INSERT 0 18
+Time: 4.724 ms
+DROP FUNCTION
+Time: 20.381 ms
+CREATE TABLE
+Time: 39.060 ms
+DO
+Time: 88565.891 ms (01:28.566)
+CREATE FUNCTION
+Time: 32.630 ms
+CREATE TABLE
+Time: 39.763 ms
+INSERT 0 4
+Time: 248299.464 ms (04:08.299)
+SELECT 2
+Time: 579.183 ms
+
+== sample
+  p  | threshold |                     rule                     
+-----+-----------+----------------------------------------------
+ 0.1 | 429496729 | h(x) = (x * 2654435761) mod 2^32 < threshold
+(1 row)
+
+Time: 2.490 ms
+== rows per table (movie tables should be near p; lookup tables higher; type tables 1.0)
+       tbl       | full_rows | sample_rows | ratio  
+-----------------+-----------+-------------+--------
+ movie_keyword   |   4523930 |      446651 | 0.0987
+ complete_cast   |    135086 |       13421 | 0.0994
+ movie_info      |  14835720 |     1478148 | 0.0996
+ aka_title       |    361472 |       36048 | 0.0997
+ movie_companies |   2609129 |      260387 | 0.0998
+ cast_info       |  36244344 |     3620154 | 0.0999
+ title           |   2528312 |      252832 | 0.1000
+ movie_info_idx  |   1380035 |      138249 | 0.1002
+ movie_link      |     29997 |        3188 | 0.1063
+ char_name       |   3140339 |      532440 | 0.1695
+ company_name    |    234997 |       57707 | 0.2456
+ name            |   4167491 |     1032446 | 0.2477
+ keyword         |    134170 |       51256 | 0.3820
+ aka_name        |    901343 |      462063 | 0.5126
+ person_info     |   2963664 |     2043846 | 0.6896
+ comp_cast_type  |         4 |           4 | 1.0000
+ company_type    |         4 |           4 | 1.0000
+ info_type       |       113 |         113 | 1.0000
+ kind_type       |         7 |           7 | 1.0000
+ link_type       |        18 |          18 | 1.0000
+ role_type       |        12 |          12 | 1.0000
+(21 rows)
+
+Time: 11.262 ms
+== 2-table joins on movie_id (should be near p, not p^2)
+            join_name             | full_rows | sample_rows | ratio  | ratio_over_p 
+----------------------------------+-----------+-------------+--------+--------------
+ movie_companies x movie_info_idx |   4073078 |      407353 | 0.1000 |         1.00
+ movie_info x movie_keyword       | 235420417 |    22364449 | 0.0950 |         0.95
+ title x cast_info                |  36244344 |     3620154 | 0.0999 |         1.00
+ title x movie_companies          |   2609129 |      260387 | 0.0998 |         1.00
+(4 rows)
+
+Time: 3.549 ms
+== known losses
+                              what                              |  n   | out_of | share  
+----------------------------------------------------------------+------+--------+--------
+ movie_link rows whose linked_movie_id was dropped              | 2888 |   3188 | 0.9059
+ complete_cast rows with NULL movie_id (full DB, never sampled) |    0 | 135086 | 0.0000
+(2 rows)
+
+Time: 4.331 ms
