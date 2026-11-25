@@ -31,7 +31,7 @@ MARK = "@@@MARK@@@"
 def run_plan(preamble, hint, sql):
     sql = sql.strip().rstrip(";")
     body = f"{hint}\n{sql}" if hint else sql
-    lines = [preamble, "SET jit = off;", f"SET statement_timeout = '{TIMEOUT}';",
+    lines = [preamble, "SET jit = off; SET log_min_messages = fatal;", f"SET statement_timeout = '{TIMEOUT}';",
              f"\\echo {MARK}", f"EXPLAIN (FORMAT JSON) {body};"]
     for _ in range(RUNS + 1):                       # first ANALYZE run = warm-up
         lines += [f"\\echo {MARK}", f"EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) {body};"]

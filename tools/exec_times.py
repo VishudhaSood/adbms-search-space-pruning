@@ -11,7 +11,7 @@ import json, os, statistics, subprocess
 
 RUNS = int(os.environ.get("RUNS", 5))
 DB = os.environ.get("DB", "test")
-SETS = ("SET max_parallel_workers_per_gather = 0; SET jit = off; SET enable_indexscan = off; "
+SETS = ("SET log_min_messages = fatal; SET max_parallel_workers_per_gather = 0; SET jit = off; SET enable_indexscan = off; "
         "SET enable_bitmapscan = off; SET enable_indexonlyscan = off;")
 MARK = "@@@MARK@@@"
 

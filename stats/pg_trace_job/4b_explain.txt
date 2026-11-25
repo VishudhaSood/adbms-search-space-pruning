@@ -1,0 +1,25 @@
+                                               QUERY PLAN                                                
+---------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=18485.04..18485.05 rows=1 width=64)
+   ->  Nested Loop  (cost=3529.62..18485.03 rows=1 width=22)
+         Join Filter: (t.id = mk.movie_id)
+         ->  Hash Join  (cost=2536.86..9437.65 rows=1 width=30)
+               Hash Cond: (t.id = mi_idx.movie_id)
+               ->  Seq Scan on title t  (cost=0.00..6756.40 rows=38501 width=21)
+                     Filter: (production_year > 2010)
+               ->  Hash  (cost=2536.76..2536.76 rows=8 width=9)
+                     ->  Nested Loop  (cost=0.00..2536.76 rows=8 width=9)
+                           Join Filter: (it.id = mi_idx.info_type_id)
+                           ->  Seq Scan on info_type it  (cost=0.00..2.41 rows=1 width=4)
+                                 Filter: ((info)::text = 'rating'::text)
+                           ->  Seq Scan on movie_info_idx mi_idx  (cost=0.00..2523.11 rows=899 width=13)
+                                 Filter: (info > '9.0'::text)
+         ->  Hash Join  (cost=992.76..9046.83 rows=44 width=4)
+               Hash Cond: (mk.keyword_id = k.id)
+               ->  Seq Scan on movie_keyword mk  (cost=0.00..6881.51 rows=446651 width=8)
+               ->  Hash  (cost=992.70..992.70 rows=5 width=4)
+                     ->  Seq Scan on keyword k  (cost=0.00..992.70 rows=5 width=4)
+                           Filter: (keyword ~~ '%sequel%'::text)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(21 rows)
+

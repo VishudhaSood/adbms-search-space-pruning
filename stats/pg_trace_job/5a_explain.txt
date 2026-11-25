@@ -1,0 +1,27 @@
+                                                      QUERY PLAN                                                      
+----------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=59458.70..59458.71 rows=1 width=32)
+   ->  Hash Join  (cost=13801.32..59458.68 rows=7 width=17)
+         Hash Cond: (mi.info_type_id = it.id)
+         ->  Hash Join  (cost=13797.78..59455.12 rows=7 width=21)
+               Hash Cond: (mi.movie_id = t.id)
+               ->  Seq Scan on movie_info mi  (cost=0.00..45610.96 rows=12363 width=8)
+                     Filter: (info = ANY ('{Sweden,Norway,Germany,Denmark,Swedish,Denish,Norwegian,German}'::text[]))
+               ->  Hash  (cost=13797.22..13797.22 rows=45 width=25)
+                     ->  Hash Join  (cost=8013.26..13797.22 rows=45 width=25)
+                           Hash Cond: (mc.company_type_id = ct.id)
+                           ->  Hash Join  (cost=8012.20..13795.19 rows=179 width=29)
+                                 Hash Cond: (mc.movie_id = t.id)
+                                 ->  Seq Scan on movie_companies mc  (cost=0.00..5781.81 rows=450 width=8)
+                                       Filter: ((note ~~ '%(theatrical)%'::text) AND (note ~~ '%(France)%'::text))
+                                 ->  Hash  (cost=6756.40..6756.40 rows=100464 width=21)
+                                       ->  Seq Scan on title t  (cost=0.00..6756.40 rows=100464 width=21)
+                                             Filter: (production_year > 2005)
+                           ->  Hash  (cost=1.05..1.05 rows=1 width=4)
+                                 ->  Seq Scan on company_type ct  (cost=0.00..1.05 rows=1 width=4)
+                                       Filter: ((kind)::text = 'production companies'::text)
+         ->  Hash  (cost=2.13..2.13 rows=113 width=4)
+               ->  Seq Scan on info_type it  (cost=0.00..2.13 rows=113 width=4)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(23 rows)
+

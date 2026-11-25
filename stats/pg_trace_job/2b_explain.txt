@@ -1,0 +1,25 @@
+                                                  QUERY PLAN                                                  
+--------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=22857.79..22857.80 rows=1 width=32)
+   ->  Hash Join  (cost=14803.68..22857.79 rows=1 width=17)
+         Hash Cond: (mk.movie_id = mc.movie_id)
+         ->  Hash Join  (cost=992.71..9046.78 rows=9 width=4)
+               Hash Cond: (mk.keyword_id = k.id)
+               ->  Seq Scan on movie_keyword mk  (cost=0.00..6881.51 rows=446651 width=8)
+               ->  Hash  (cost=992.70..992.70 rows=1 width=4)
+                     ->  Seq Scan on keyword k  (cost=0.00..992.70 rows=1 width=4)
+                           Filter: (keyword = 'character-name-in-title'::text)
+         ->  Hash  (cost=13772.33..13772.33 rows=3091 width=25)
+               ->  Hash Join  (cost=6668.98..13772.33 rows=3091 width=25)
+                     Hash Cond: (t.id = mc.movie_id)
+                     ->  Seq Scan on title t  (cost=0.00..6124.32 rows=252832 width=21)
+                     ->  Hash  (cost=6630.34..6630.34 rows=3091 width=4)
+                           ->  Hash Join  (cost=1466.90..6630.34 rows=3091 width=4)
+                                 Hash Cond: (mc.company_id = cn.id)
+                                 ->  Seq Scan on movie_companies mc  (cost=0.00..4479.87 rows=260387 width=8)
+                                 ->  Hash  (cost=1458.34..1458.34 rows=685 width=4)
+                                       ->  Seq Scan on company_name cn  (cost=0.00..1458.34 rows=685 width=4)
+                                             Filter: ((country_code)::text = '[nl]'::text)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(21 rows)
+

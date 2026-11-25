@@ -1,0 +1,26 @@
+                                                                              QUERY PLAN                                                                               
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=114576.36..114576.37 rows=1 width=96)
+   ->  Nested Loop  (cost=36131.03..114576.36 rows=1 width=46)
+         Join Filter: (t.id = ci.movie_id)
+         ->  Hash Join  (cost=26698.86..97667.35 rows=361 width=19)
+               Hash Cond: (ci.person_id = n.id)
+               ->  Seq Scan on cast_info ci  (cost=0.00..61465.54 rows=3620154 width=8)
+               ->  Hash  (cost=26697.58..26697.58 rows=103 width=19)
+                     ->  Seq Scan on name n  (cost=0.00..26697.58 rows=103 width=19)
+                           Filter: (name ~~ '%Downey%Robert%'::text)
+         ->  Materialize  (cost=9432.16..16703.33 rows=38 width=39)
+               ->  Hash Join  (cost=9432.16..16703.14 rows=38 width=39)
+                     Hash Cond: (t.id = mk.movie_id)
+                     ->  Seq Scan on title t  (cost=0.00..6756.40 rows=137119 width=21)
+                           Filter: (production_year > 2000)
+                     ->  Hash  (cost=9431.29..9431.29 rows=70 width=18)
+                           ->  Hash Join  (cost=1377.22..9431.29 rows=70 width=18)
+                                 Hash Cond: (mk.keyword_id = k.id)
+                                 ->  Seq Scan on movie_keyword mk  (cost=0.00..6881.51 rows=446651 width=8)
+                                 ->  Hash  (cost=1377.12..1377.12 rows=8 width=18)
+                                       ->  Seq Scan on keyword k  (cost=0.00..1377.12 rows=8 width=18)
+                                             Filter: (keyword = ANY ('{superhero,sequel,second-part,marvel-comics,based-on-comic,tv-special,fight,violence}'::text[]))
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(22 rows)
+

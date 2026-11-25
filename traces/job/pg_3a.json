@@ -1,0 +1,5413 @@
+{
+ "optimizer": "pg",
+ "query": "3a",
+ "sql": "SELECT MIN(t.title) AS movie_title FROM keyword AS k, movie_info AS mi, movie_keyword AS mk, title AS t WHERE k.keyword  like '%sequel%' AND mi.info  IN ('Sweden', 'Norway', 'Germany', 'Denmark', 'Swedish', 'Denish', 'Norwegian', 'German') AND t.production_year > 2005 AND t.id = mi.movie_id AND t.id = mk.movie_id AND mk.movie_id = mi.movie_id AND k.id = mk.keyword_id",
+ "tables": [
+  "k",
+  "mi",
+  "mk",
+  "t"
+ ],
+ "events": [
+  {
+   "set": [
+    "k"
+   ],
+   "op": "SeqScan",
+   "inputs": [],
+   "startup": 0.0,
+   "t": 93.7,
+   "total": 992.7,
+   "rows": 5.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 1,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k"
+   ],
+   "op": "IndexScan",
+   "inputs": [],
+   "startup": 0.29,
+   "t": 190.3,
+   "total": 1849.09,
+   "rows": 5.0,
+   "sorted": true,
+   "disabled": 1,
+   "step": 2,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k"
+   ],
+   "op": "IndexScan",
+   "inputs": [],
+   "startup": 0.29,
+   "t": 258.6,
+   "total": 0.31,
+   "rows": 5.0,
+   "sorted": true,
+   "disabled": 1,
+   "step": 3,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k"
+   ],
+   "op": "BitmapHeapScan",
+   "inputs": [],
+   "startup": 0.3,
+   "t": 277.1,
+   "total": 4.32,
+   "rows": 5.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 4,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mi"
+   ],
+   "op": "SeqScan",
+   "inputs": [],
+   "startup": 0.0,
+   "t": 319.4,
+   "total": 45610.96,
+   "rows": 12363.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 5,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "mk"
+   ],
+   "op": "SeqScan",
+   "inputs": [],
+   "startup": 0.0,
+   "t": 358.7,
+   "total": 6881.51,
+   "rows": 446651.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 6,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "t"
+   ],
+   "op": "SeqScan",
+   "inputs": [],
+   "startup": 0.0,
+   "t": 395.1,
+   "total": 6756.4,
+   "rows": 100464.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 7,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "t"
+   ],
+   "op": "IndexScan",
+   "inputs": [],
+   "startup": 0.42,
+   "t": 417.0,
+   "total": 10881.75,
+   "rows": 100464.0,
+   "sorted": true,
+   "disabled": 1,
+   "step": 8,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "t"
+   ],
+   "op": "IndexScan",
+   "inputs": [],
+   "startup": 0.42,
+   "t": 491.1,
+   "total": 1.83,
+   "rows": 100464.0,
+   "sorted": true,
+   "disabled": 1,
+   "step": 9,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "t"
+   ],
+   "op": "IndexScan",
+   "inputs": [],
+   "startup": 0.42,
+   "t": 569.2,
+   "total": 0.48,
+   "rows": 100464.0,
+   "sorted": true,
+   "disabled": 1,
+   "step": 10,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "t"
+   ],
+   "op": "BitmapHeapScan",
+   "inputs": [],
+   "startup": 25.77,
+   "t": 589.3,
+   "total": 29.78,
+   "rows": 100464.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 11,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "t"
+   ],
+   "op": "BitmapHeapScan",
+   "inputs": [],
+   "startup": 25.55,
+   "t": 603.8,
+   "total": 29.56,
+   "rows": 100464.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 12,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 49789.94,
+   "t": 915.3,
+   "total": 52023.3,
+   "rows": 44.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 13,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 978.2,
+   "total": 63315.94,
+   "rows": 44.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 14,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 49789.94,
+   "t": 998.7,
+   "total": 52023.3,
+   "rows": 44.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 15,
+   "result": "evicted"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 1014.0,
+   "total": 42489.66,
+   "rows": 44.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 16,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 0.29,
+   "t": 1027.4,
+   "total": 36256.64,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 17,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 0.29,
+   "t": 1039.8,
+   "total": 15430.37,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 18,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 48797.38,
+   "t": 1054.1,
+   "total": 51762.63,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 19,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 1081.0,
+   "total": 42489.66,
+   "rows": 44.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 20,
+   "result": "evicted"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 12464.65,
+   "t": 1093.5,
+   "total": 13502.56,
+   "rows": 44.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 21,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 49789.85,
+   "t": 1119.5,
+   "total": 50906.31,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 22,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 1133.7,
+   "total": 443419288.32,
+   "rows": 44.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 23,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 1146.3,
+   "total": 41372.6,
+   "rows": 44.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 24,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 12464.65,
+   "t": 1162.9,
+   "total": 13502.56,
+   "rows": 44.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 25,
+   "result": "evicted"
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 992.76,
+   "t": 1173.9,
+   "total": 9046.83,
+   "rows": 44.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 26,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "mi",
+    "mk"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 95248.26,
+   "t": 1525.9,
+   "total": 98274.59,
+   "rows": 73127.0,
+   "sorted": true,
+   "disabled": 0,
+   "step": 27,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 1575.1,
+   "total": 85121719.09,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 28,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 1592.3,
+   "total": 13858474.88,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 29,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 12464.65,
+   "t": 1613.9,
+   "total": 67120.99,
+   "rows": 73127.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 30,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "mi",
+    "mk"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 95248.28,
+   "t": 1638.3,
+   "total": 98578.4,
+   "rows": 73127.0,
+   "sorted": true,
+   "disabled": 0,
+   "step": 31,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 1652.5,
+   "total": 20372187776.47,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 32,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 1664.2,
+   "total": 13857389.16,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 33,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 45765.5,
+   "t": 1681.6,
+   "total": 770253.13,
+   "rows": 73127.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 34,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mi",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 61554.37,
+   "t": 1950.3,
+   "total": 62167.16,
+   "rows": 4912.0,
+   "sorted": true,
+   "disabled": 0,
+   "step": 35,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "mi",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 2003.2,
+   "total": 99100439.56,
+   "rows": 4912.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 36,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mi",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 2054.8,
+   "total": 18683165.0,
+   "rows": 4912.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 37,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mi",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 2079.1,
+   "total": 53655.61,
+   "rows": 4912.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 38,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "mi",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 61554.37,
+   "t": 2101.2,
+   "total": 62167.16,
+   "rows": 4912.0,
+   "sorted": true,
+   "disabled": 0,
+   "step": 39,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mi",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 2113.9,
+   "total": 4582266241.84,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 40,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 2127.1,
+   "total": 3157489.35,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 41,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 0.42,
+   "t": 2138.5,
+   "total": 4582270367.19,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 42,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 0.42,
+   "t": 2150.6,
+   "total": 3161614.7,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 43,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 46451.68,
+   "t": 2162.4,
+   "total": 57353.84,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 44,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 45765.5,
+   "t": 2180.2,
+   "total": 213815.74,
+   "rows": 4912.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 45,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 63900.22,
+   "t": 2443.5,
+   "total": 68409.95,
+   "rows": 177479.0,
+   "sorted": true,
+   "disabled": 0,
+   "step": 46,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 2492.1,
+   "total": 3578647999.63,
+   "rows": 177479.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 47,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 2510.6,
+   "total": 673096066.17,
+   "rows": 177479.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 48,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 2531.1,
+   "total": 16066.19,
+   "rows": 177479.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 49,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 63900.22,
+   "t": 2551.4,
+   "total": 68409.95,
+   "rows": 177479.0,
+   "sorted": true,
+   "disabled": 0,
+   "step": 50,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 2564.8,
+   "total": 691350777.04,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 51,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 0.0,
+   "t": 2576.7,
+   "total": 112195619.7,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 52,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 0.42,
+   "t": 2588.0,
+   "total": 691354902.39,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 53,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 0.42,
+   "t": 2600.4,
+   "total": 112199745.05,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 54,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 48799.7,
+   "t": 2612.5,
+   "total": 60783.9,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 55,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 12464.65,
+   "t": 2625.3,
+   "total": 19472.21,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 56,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 55499.29,
+   "t": 2736.8,
+   "total": 55561.38,
+   "rows": 7.0,
+   "sorted": true,
+   "disabled": 0,
+   "step": 57,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 992.76,
+   "t": 2749.2,
+   "total": 2015929.07,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 58,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 992.76,
+   "t": 2762.8,
+   "total": 62848.28,
+   "rows": 7.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 59,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 46758.26,
+   "t": 2777.0,
+   "total": 54883.02,
+   "rows": 7.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 60,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 55499.29,
+   "t": 2792.5,
+   "total": 55561.38,
+   "rows": 7.0,
+   "sorted": true,
+   "disabled": 0,
+   "step": 61,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 992.76,
+   "t": 2804.6,
+   "total": 99619058.77,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 62,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 992.76,
+   "t": 2815.8,
+   "total": 56017.83,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 63,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 46758.26,
+   "t": 2830.0,
+   "total": 54883.02,
+   "rows": 7.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 64,
+   "result": "evicted"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 9047.38,
+   "t": 2843.0,
+   "total": 54704.77,
+   "rows": 7.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 65,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 24151.25,
+   "t": 2868.8,
+   "total": 24653.32,
+   "rows": 17.0,
+   "sorted": true,
+   "disabled": 0,
+   "step": 66,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 992.76,
+   "t": 2883.6,
+   "total": 361583.63,
+   "rows": 17.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 67,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 992.76,
+   "t": 2903.9,
+   "total": 82360.63,
+   "rows": 17.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 68,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 9004.96,
+   "t": 2919.2,
+   "total": 17059.15,
+   "rows": 17.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 69,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 24151.25,
+   "t": 2936.4,
+   "total": 24653.32,
+   "rows": 17.0,
+   "sorted": true,
+   "disabled": 0,
+   "step": 70,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 992.76,
+   "t": 2947.9,
+   "total": 809151737.18,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 71,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 992.76,
+   "t": 2959.1,
+   "total": 26854.38,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 72,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 993.18,
+   "t": 2970.2,
+   "total": 809155862.53,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 73,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 993.18,
+   "t": 2982.1,
+   "total": 30979.73,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 74,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 9050.73,
+   "t": 2996.3,
+   "total": 19918.41,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 75,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 9004.96,
+   "t": 3014.4,
+   "total": 17059.15,
+   "rows": 17.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 76,
+   "result": "evicted"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 9047.38,
+   "t": 3025.9,
+   "total": 16180.69,
+   "rows": 17.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 77,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 74021.74,
+   "t": 3046.0,
+   "total": 74204.54,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 78,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 12464.65,
+   "t": 3093.0,
+   "total": 67120.99,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 79,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 12464.65,
+   "t": 3110.1,
+   "total": 67120.99,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 80,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 95248.26,
+   "t": 3125.9,
+   "total": 98274.59,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 81,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 95248.26,
+   "t": 3139.1,
+   "total": 98274.59,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 82,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 13457.41,
+   "t": 3153.6,
+   "total": 68296.57,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 83,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 74021.74,
+   "t": 3170.8,
+   "total": 74204.54,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 84,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 12464.65,
+   "t": 3182.7,
+   "total": 286739.09,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 85,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 12464.65,
+   "t": 3195.1,
+   "total": 69210.6,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 86,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 12464.94,
+   "t": 3205.9,
+   "total": 287595.48,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 87,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 12464.94,
+   "t": 3219.2,
+   "total": 70066.99,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 88,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 73029.27,
+   "t": 3231.1,
+   "total": 75060.86,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 89,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 68035.08,
+   "t": 3267.5,
+   "total": 69027.79,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 90,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 88132.11,
+   "t": 3336.2,
+   "total": 89290.14,
+   "rows": 29057.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 91,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 12464.65,
+   "t": 3363.8,
+   "total": 585975270.39,
+   "rows": 29057.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 92,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 12464.65,
+   "t": 3379.8,
+   "total": 110273592.48,
+   "rows": 29057.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 93,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 95248.26,
+   "t": 3392.9,
+   "total": 98274.59,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 94,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 95248.26,
+   "t": 3428.6,
+   "total": 98274.59,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 95,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 110351.66,
+   "t": 3441.3,
+   "total": 113628.62,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 96,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 95248.97,
+   "t": 3462.6,
+   "total": 109146.26,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 97,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 88132.11,
+   "t": 3479.4,
+   "total": 89290.14,
+   "rows": 29057.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 98,
+   "result": "evicted"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 20476.85,
+   "t": 3499.1,
+   "total": 75325.15,
+   "rows": 29057.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 99,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 88132.09,
+   "t": 3515.1,
+   "total": 88565.82,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 100,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 12464.65,
+   "t": 3527.3,
+   "total": 5491014516.29,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 101,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 12464.65,
+   "t": 3552.6,
+   "total": 18440637.53,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 102,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 12465.07,
+   "t": 3563.6,
+   "total": 5491018641.64,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 103,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 12465.07,
+   "t": 3597.2,
+   "total": 18444762.88,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 104,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 73029.41,
+   "t": 3610.4,
+   "total": 84083.46,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 105,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 95248.97,
+   "t": 3625.6,
+   "total": 109146.26,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 106,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 68035.08,
+   "t": 3643.4,
+   "total": 1027229.61,
+   "rows": 29057.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 107,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 102753.77,
+   "t": 3669.1,
+   "total": 103882.67,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 108,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 3684.9,
+   "total": 33855632.73,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 109,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 3695.7,
+   "total": 5546528.03,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 110,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 61554.37,
+   "t": 3713.9,
+   "total": 33864144.28,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 111,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 61554.37,
+   "t": 3724.0,
+   "total": 5555039.57,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 112,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 110351.5,
+   "t": 3743.4,
+   "total": 112080.16,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 113,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "mk"
+    ]
+   ],
+   "startup": 20476.85,
+   "t": 3757.9,
+   "total": 129614.82,
+   "rows": 29057.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 114,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "mi",
+     "t"
+    ]
+   ],
+   "startup": 102753.77,
+   "t": 3772.4,
+   "total": 103882.67,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 115,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "mi",
+     "t"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 3790.5,
+   "total": 20386690897.74,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 116,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "mi",
+     "t"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 3801.9,
+   "total": 5545423.68,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 117,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 20476.85,
+   "t": 3826.9,
+   "total": 75325.15,
+   "rows": 29057.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 118,
+   "result": "evicted"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mk"
+    ],
+    [
+     "mi",
+     "t"
+    ]
+   ],
+   "startup": 53717.01,
+   "t": 3879.7,
+   "total": 62360.24,
+   "rows": 29057.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 119,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 32532.75,
+   "t": 3941.2,
+   "total": 32976.39,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 120,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 3961.8,
+   "total": 176208576.4,
+   "rows": 17.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 121,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 3987.3,
+   "total": 30369.68,
+   "rows": 17.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 122,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 63900.22,
+   "t": 4001.1,
+   "total": 68409.95,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 123,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 63900.22,
+   "t": 4014.2,
+   "total": 68409.95,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 124,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 9004.96,
+   "t": 4035.4,
+   "total": 17502.65,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 125,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 32532.75,
+   "t": 4050.7,
+   "total": 32976.39,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 126,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 4069.6,
+   "total": 49274.86,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 127,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 4081.7,
+   "total": 19721.08,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 128,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 8012.49,
+   "t": 4101.8,
+   "total": 50131.25,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 129,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 8012.49,
+   "t": 4115.6,
+   "total": 20577.47,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 130,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 31540.28,
+   "t": 4128.2,
+   "total": 33832.71,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 131,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 18284.68,
+   "t": 4149.3,
+   "total": 19277.39,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 132,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 77991.21,
+   "t": 4170.2,
+   "total": 78465.4,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 133,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 4230.4,
+   "total": 8095003636.03,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 134,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 4248.3,
+   "total": 5547140.25,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 135,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 63900.22,
+   "t": 4271.7,
+   "total": 8095055979.79,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 136,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 63900.22,
+   "t": 4284.1,
+   "total": 5599484.01,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 137,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 110351.47,
+   "t": 4304.3,
+   "total": 114887.92,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 138,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 53777.7,
+   "t": 4322.5,
+   "total": 346772.26,
+   "rows": 29057.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 139,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 77991.21,
+   "t": 4340.2,
+   "total": 78465.4,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 140,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 4366.7,
+   "total": 99625115.44,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 141,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 8012.2,
+   "t": 4377.7,
+   "total": 5547553.04,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 142,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 18284.68,
+   "t": 4395.5,
+   "total": 63926.55,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 143,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k",
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 69807.98,
+   "t": 4503.4,
+   "total": 70309.9,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 144,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 9047.38,
+   "t": 4519.0,
+   "total": 110790.17,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 145,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 9047.38,
+   "t": 4536.5,
+   "total": 72261.05,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 146,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 55499.29,
+   "t": 4556.2,
+   "total": 111646.78,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 147,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 55499.29,
+   "t": 4569.0,
+   "total": 73117.66,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 148,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k",
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 70602.4,
+   "t": 4590.7,
+   "total": 71166.4,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 149,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k",
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 55499.71,
+   "t": 4602.1,
+   "total": 66433.06,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 150,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k",
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 69807.98,
+   "t": 4628.3,
+   "total": 70309.9,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 151,
+   "result": "evicted"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k",
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 17059.58,
+   "t": 4641.8,
+   "total": 62716.99,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 152,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 69807.98,
+   "t": 4654.3,
+   "total": 70058.93,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 153,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 9047.38,
+   "t": 4674.8,
+   "total": 4586939958.32,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 154,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 9047.38,
+   "t": 4688.8,
+   "total": 72009.91,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 155,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 9047.8,
+   "t": 4704.6,
+   "total": 4586944083.67,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 156,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 9047.8,
+   "t": 4718.8,
+   "total": 67344.66,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 157,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 54705.29,
+   "t": 4732.0,
+   "total": 65576.57,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 158,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 55499.71,
+   "t": 4751.2,
+   "total": 66433.06,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 159,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k",
+     "mi",
+     "mk"
+    ],
+    [
+     "t"
+    ]
+   ],
+   "startup": 17059.58,
+   "t": 4769.2,
+   "total": 62716.99,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 160,
+   "result": "evicted"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 54704.86,
+   "t": 4786.0,
+   "total": 61838.03,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 161,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k",
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 62632.3,
+   "t": 4805.4,
+   "total": 62663.25,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 162,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 9047.38,
+   "t": 4856.4,
+   "total": 791567.01,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 163,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 9047.38,
+   "t": 4881.7,
+   "total": 64975.12,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 164,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 24151.25,
+   "t": 4897.8,
+   "total": 800039.64,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 165,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 24151.25,
+   "t": 4923.0,
+   "total": 70820.62,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 166,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k",
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 70602.51,
+   "t": 4937.8,
+   "total": 71135.49,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 167,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k",
+     "mk",
+     "t"
+    ],
+    [
+     "mi"
+    ]
+   ],
+   "startup": 54812.88,
+   "t": 4966.7,
+   "total": 61973.48,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 168,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "k",
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 62632.3,
+   "t": 4983.4,
+   "total": 62663.25,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 169,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "k",
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 9047.38,
+   "t": 5000.8,
+   "total": 88243769.87,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 170,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "k",
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 9047.38,
+   "t": 5018.6,
+   "total": 64944.26,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 171,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "t"
+    ],
+    [
+     "k",
+     "mi",
+     "mk"
+    ]
+   ],
+   "startup": 54704.86,
+   "t": 5042.4,
+   "total": 61838.03,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 172,
+   "result": "evicted"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mi"
+    ],
+    [
+     "k",
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 16180.9,
+   "t": 5056.9,
+   "total": 61838.24,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 173,
+   "result": "kept"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi",
+     "mk",
+     "t"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 65507.09,
+   "t": 5079.5,
+   "total": 65579.73,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 174,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "mk",
+     "t"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 53717.01,
+   "t": 5133.1,
+   "total": 28908398.36,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 175,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "mk",
+     "t"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 53717.01,
+   "t": 5153.6,
+   "total": 65532.18,
+   "rows": 3.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 176,
+   "result": "rejected"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mi",
+     "mk",
+     "t"
+    ],
+    [
+     "k"
+    ]
+   ],
+   "startup": 54709.78,
+   "t": 5174.0,
+   "total": 63425.65,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 177,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 65507.09,
+   "t": 5195.8,
+   "total": 65579.73,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 178,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 53717.01,
+   "t": 5210.6,
+   "total": 97925.87,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 179,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 53717.01,
+   "t": 5230.1,
+   "total": 63788.8,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 180,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 53717.3,
+   "t": 5242.1,
+   "total": 98782.26,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 181,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 53717.3,
+   "t": 5262.6,
+   "total": 64645.19,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 182,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 64514.62,
+   "t": 5275.1,
+   "total": 66436.06,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 1,
+   "step": 183,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k"
+    ],
+    [
+     "mi",
+     "mk",
+     "t"
+    ]
+   ],
+   "startup": 62723.46,
+   "t": 5291.3,
+   "total": 63716.17,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 184,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "mi",
+     "t"
+    ]
+   ],
+   "startup": 63004.8,
+   "t": 5316.7,
+   "total": 63017.18,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 185,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "mi",
+     "t"
+    ]
+   ],
+   "startup": 9004.96,
+   "t": 5336.6,
+   "total": 2025369.2,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 186,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "mi",
+     "t"
+    ]
+   ],
+   "startup": 9004.96,
+   "t": 5349.2,
+   "total": 63255.04,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 187,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "k",
+     "mk"
+    ],
+    [
+     "mi",
+     "t"
+    ]
+   ],
+   "startup": 54709.78,
+   "t": 5361.2,
+   "total": 62763.95,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 188,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 63004.8,
+   "t": 5381.3,
+   "total": 63017.18,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 189,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 9004.96,
+   "t": 5393.8,
+   "total": 39616235.3,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 190,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 9004.96,
+   "t": 5411.3,
+   "total": 63242.87,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 191,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 62547.13,
+   "t": 5422.5,
+   "total": 39624746.85,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 192,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "NestLoop",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 62547.13,
+   "t": 5440.2,
+   "total": 71754.42,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 193,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "MergeJoin",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 70602.53,
+   "t": 5452.4,
+   "total": 71214.68,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 194,
+   "result": "precheck"
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "op": "HashJoin",
+   "inputs": [
+    [
+     "mi",
+     "t"
+    ],
+    [
+     "k",
+     "mk"
+    ]
+   ],
+   "startup": 17059.58,
+   "t": 5463.7,
+   "total": 62715.27,
+   "rows": 0.0,
+   "sorted": false,
+   "disabled": 0,
+   "step": 195,
+   "result": "precheck"
+  }
+ ],
+ "survivors": {
+  "k": [
+   {
+    "set": [
+     "k"
+    ],
+    "op": "SeqScan",
+    "inputs": [],
+    "startup": 0.0,
+    "t": 287.6,
+    "total": 992.7,
+    "rows": 5.0,
+    "sorted": false,
+    "disabled": 0
+   },
+   {
+    "set": [
+     "k"
+    ],
+    "op": "IndexScan",
+    "inputs": [],
+    "startup": 0.29,
+    "t": 298.4,
+    "total": 1849.09,
+    "rows": 5.0,
+    "sorted": true,
+    "disabled": 1
+   }
+  ],
+  "mi": [
+   {
+    "set": [
+     "mi"
+    ],
+    "op": "SeqScan",
+    "inputs": [],
+    "startup": 0.0,
+    "t": 340.6,
+    "total": 45610.96,
+    "rows": 12363.0,
+    "sorted": false,
+    "disabled": 0
+   }
+  ],
+  "mk": [
+   {
+    "set": [
+     "mk"
+    ],
+    "op": "SeqScan",
+    "inputs": [],
+    "startup": 0.0,
+    "t": 376.2,
+    "total": 6881.51,
+    "rows": 446651.0,
+    "sorted": false,
+    "disabled": 0
+   }
+  ],
+  "t": [
+   {
+    "set": [
+     "t"
+    ],
+    "op": "SeqScan",
+    "inputs": [],
+    "startup": 0.0,
+    "t": 613.8,
+    "total": 6756.4,
+    "rows": 100464.0,
+    "sorted": false,
+    "disabled": 0
+   },
+   {
+    "set": [
+     "t"
+    ],
+    "op": "IndexScan",
+    "inputs": [],
+    "startup": 0.42,
+    "t": 625.6,
+    "total": 10881.75,
+    "rows": 100464.0,
+    "sorted": true,
+    "disabled": 1
+   }
+  ],
+  "k,mk": [
+   {
+    "set": [
+     "k",
+     "mk"
+    ],
+    "op": "HashJoin",
+    "inputs": [
+     [
+      "mk"
+     ],
+     [
+      "k"
+     ]
+    ],
+    "startup": 992.76,
+    "t": 2638.5,
+    "total": 9046.83,
+    "rows": 44.0,
+    "sorted": false,
+    "disabled": 0
+   }
+  ],
+  "mi,mk": [
+   {
+    "set": [
+     "mi",
+     "mk"
+    ],
+    "op": "HashJoin",
+    "inputs": [
+     [
+      "mi"
+     ],
+     [
+      "mk"
+     ]
+    ],
+    "startup": 12464.65,
+    "t": 2650.6,
+    "total": 67120.99,
+    "rows": 73127.0,
+    "sorted": false,
+    "disabled": 0
+   },
+   {
+    "set": [
+     "mi",
+     "mk"
+    ],
+    "op": "MergeJoin",
+    "inputs": [
+     [
+      "mi"
+     ],
+     [
+      "mk"
+     ]
+    ],
+    "startup": 95248.26,
+    "t": 2661.2,
+    "total": 98274.59,
+    "rows": 73127.0,
+    "sorted": true,
+    "disabled": 0
+   }
+  ],
+  "mi,t": [
+   {
+    "set": [
+     "mi",
+     "t"
+    ],
+    "op": "HashJoin",
+    "inputs": [
+     [
+      "mi"
+     ],
+     [
+      "t"
+     ]
+    ],
+    "startup": 8012.2,
+    "t": 2673.6,
+    "total": 53655.61,
+    "rows": 4912.0,
+    "sorted": false,
+    "disabled": 0
+   },
+   {
+    "set": [
+     "mi",
+     "t"
+    ],
+    "op": "MergeJoin",
+    "inputs": [
+     [
+      "mi"
+     ],
+     [
+      "t"
+     ]
+    ],
+    "startup": 61554.37,
+    "t": 2684.5,
+    "total": 62167.16,
+    "rows": 4912.0,
+    "sorted": true,
+    "disabled": 0
+   }
+  ],
+  "mk,t": [
+   {
+    "set": [
+     "mk",
+     "t"
+    ],
+    "op": "HashJoin",
+    "inputs": [
+     [
+      "mk"
+     ],
+     [
+      "t"
+     ]
+    ],
+    "startup": 8012.2,
+    "t": 2696.4,
+    "total": 16066.19,
+    "rows": 177479.0,
+    "sorted": false,
+    "disabled": 0
+   },
+   {
+    "set": [
+     "mk",
+     "t"
+    ],
+    "op": "MergeJoin",
+    "inputs": [
+     [
+      "mk"
+     ],
+     [
+      "t"
+     ]
+    ],
+    "startup": 63900.22,
+    "t": 2708.1,
+    "total": 68409.95,
+    "rows": 177479.0,
+    "sorted": true,
+    "disabled": 0
+   }
+  ],
+  "k,mi,mk": [
+   {
+    "set": [
+     "k",
+     "mi",
+     "mk"
+    ],
+    "op": "HashJoin",
+    "inputs": [
+     [
+      "mi"
+     ],
+     [
+      "k",
+      "mk"
+     ]
+    ],
+    "startup": 9047.38,
+    "t": 4409.1,
+    "total": 54704.77,
+    "rows": 7.0,
+    "sorted": false,
+    "disabled": 0
+   },
+   {
+    "set": [
+     "k",
+     "mi",
+     "mk"
+    ],
+    "op": "MergeJoin",
+    "inputs": [
+     [
+      "k",
+      "mk"
+     ],
+     [
+      "mi"
+     ]
+    ],
+    "startup": 55499.29,
+    "t": 4426.5,
+    "total": 55561.38,
+    "rows": 7.0,
+    "sorted": true,
+    "disabled": 0
+   }
+  ],
+  "k,mk,t": [
+   {
+    "set": [
+     "k",
+     "mk",
+     "t"
+    ],
+    "op": "HashJoin",
+    "inputs": [
+     [
+      "t"
+     ],
+     [
+      "k",
+      "mk"
+     ]
+    ],
+    "startup": 9047.38,
+    "t": 4439.3,
+    "total": 16180.69,
+    "rows": 17.0,
+    "sorted": false,
+    "disabled": 0
+   },
+   {
+    "set": [
+     "k",
+     "mk",
+     "t"
+    ],
+    "op": "MergeJoin",
+    "inputs": [
+     [
+      "k",
+      "mk"
+     ],
+     [
+      "t"
+     ]
+    ],
+    "startup": 24151.25,
+    "t": 4457.1,
+    "total": 24653.32,
+    "rows": 17.0,
+    "sorted": true,
+    "disabled": 0
+   }
+  ],
+  "mi,mk,t": [
+   {
+    "set": [
+     "mi",
+     "mk",
+     "t"
+    ],
+    "op": "HashJoin",
+    "inputs": [
+     [
+      "mk"
+     ],
+     [
+      "mi",
+      "t"
+     ]
+    ],
+    "startup": 53717.01,
+    "t": 4469.0,
+    "total": 62360.24,
+    "rows": 29057.0,
+    "sorted": false,
+    "disabled": 0
+   }
+  ],
+  "k,mi,mk,t": [
+   {
+    "set": [
+     "k",
+     "mi",
+     "mk",
+     "t"
+    ],
+    "op": "HashJoin",
+    "inputs": [
+     [
+      "mi"
+     ],
+     [
+      "k",
+      "mk",
+      "t"
+     ]
+    ],
+    "startup": 16180.9,
+    "t": 5520.7,
+    "total": 61838.24,
+    "rows": 3.0,
+    "sorted": false,
+    "disabled": 0
+   }
+  ]
+ },
+ "per_set": [
+  {
+   "set": [
+    "k"
+   ],
+   "kept": 2,
+   "rejected": 2,
+   "evicted": 0,
+   "precheck": 0,
+   "retained": 2,
+   "disabled_paths": 3
+  },
+  {
+   "set": [
+    "mi"
+   ],
+   "kept": 1,
+   "rejected": 0,
+   "evicted": 0,
+   "precheck": 0,
+   "retained": 1,
+   "disabled_paths": 0
+  },
+  {
+   "set": [
+    "mk"
+   ],
+   "kept": 1,
+   "rejected": 0,
+   "evicted": 0,
+   "precheck": 0,
+   "retained": 1,
+   "disabled_paths": 0
+  },
+  {
+   "set": [
+    "t"
+   ],
+   "kept": 2,
+   "rejected": 4,
+   "evicted": 0,
+   "precheck": 0,
+   "retained": 2,
+   "disabled_paths": 5
+  },
+  {
+   "set": [
+    "k",
+    "mk"
+   ],
+   "kept": 4,
+   "rejected": 3,
+   "evicted": 3,
+   "precheck": 4,
+   "retained": 1,
+   "disabled_paths": 0
+  },
+  {
+   "set": [
+    "mi",
+    "mk"
+   ],
+   "kept": 2,
+   "rejected": 2,
+   "evicted": 0,
+   "precheck": 4,
+   "retained": 2,
+   "disabled_paths": 0
+  },
+  {
+   "set": [
+    "mi",
+    "t"
+   ],
+   "kept": 2,
+   "rejected": 4,
+   "evicted": 0,
+   "precheck": 5,
+   "retained": 2,
+   "disabled_paths": 0
+  },
+  {
+   "set": [
+    "mk",
+    "t"
+   ],
+   "kept": 2,
+   "rejected": 3,
+   "evicted": 0,
+   "precheck": 6,
+   "retained": 2,
+   "disabled_paths": 0
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk"
+   ],
+   "kept": 3,
+   "rejected": 2,
+   "evicted": 1,
+   "precheck": 16,
+   "retained": 2,
+   "disabled_paths": 0
+  },
+  {
+   "set": [
+    "k",
+    "mk",
+    "t"
+   ],
+   "kept": 3,
+   "rejected": 5,
+   "evicted": 1,
+   "precheck": 16,
+   "retained": 2,
+   "disabled_paths": 0
+  },
+  {
+   "set": [
+    "mi",
+    "mk",
+    "t"
+   ],
+   "kept": 3,
+   "rejected": 5,
+   "evicted": 2,
+   "precheck": 30,
+   "retained": 1,
+   "disabled_paths": 0
+  },
+  {
+   "set": [
+    "k",
+    "mi",
+    "mk",
+    "t"
+   ],
+   "kept": 4,
+   "rejected": 11,
+   "evicted": 3,
+   "precheck": 34,
+   "retained": 1,
+   "disabled_paths": 0
+  }
+ ],
+ "summary": {
+  "tables": 4,
+  "sets_built": 12,
+  "considered": 185,
+  "built": 70,
+  "pruned_precheck": 115,
+  "pruned_on_arrival": 41,
+  "evicted_later": 10,
+  "retained": 19,
+  "disabled_paths": 8
+ },
+ "final_plan": {
+  "op": "HashJoin",
+  "set": [
+   "k",
+   "mi",
+   "mk",
+   "t"
+  ],
+  "startup": 16180.9,
+  "total": 61838.24,
+  "rows": 3.0,
+  "children": [
+   {
+    "op": "SeqScan",
+    "set": [
+     "mi"
+    ],
+    "startup": 0.0,
+    "total": 45610.96,
+    "rows": 12363.0,
+    "children": []
+   },
+   {
+    "op": "HashJoin",
+    "set": [
+     "k",
+     "mk",
+     "t"
+    ],
+    "startup": 9047.38,
+    "total": 16180.69,
+    "rows": 17.0,
+    "children": [
+     {
+      "op": "SeqScan",
+      "set": [
+       "t"
+      ],
+      "startup": 0.0,
+      "total": 6756.4,
+      "rows": 100464.0,
+      "children": []
+     },
+     {
+      "op": "HashJoin",
+      "set": [
+       "k",
+       "mk"
+      ],
+      "startup": 992.76,
+      "total": 9046.83,
+      "rows": 44.0,
+      "children": [
+       {
+        "op": "SeqScan",
+        "set": [
+         "mk"
+        ],
+        "startup": 0.0,
+        "total": 6881.51,
+        "rows": 446651.0,
+        "children": []
+       },
+       {
+        "op": "SeqScan",
+        "set": [
+         "k"
+        ],
+        "startup": 0.0,
+        "total": 992.7,
+        "rows": 5.0,
+        "children": []
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "explain": "                                                   QUERY PLAN                                                   \n----------------------------------------------------------------------------------------------------------------\n Aggregate  (cost=61838.24..61838.25 rows=1 width=32)\n   ->  Hash Join  (cost=16180.90..61838.24 rows=3 width=17)\n         Hash Cond: (mi.movie_id = t.id)\n         ->  Seq Scan on movie_info mi  (cost=0.00..45610.96 rows=12363 width=4)\n               Filter: (info = ANY ('{Sweden,Norway,Germany,Denmark,Swedish,Denish,Norwegian,German}'::text[]))\n         ->  Hash  (cost=16180.69..16180.69 rows=17 width=25)\n               ->  Hash Join  (cost=9047.38..16180.69 rows=17 width=25)\n                     Hash Cond: (t.id = mk.movie_id)\n                     ->  Seq Scan on title t  (cost=0.00..6756.40 rows=100464 width=21)\n                           Filter: (production_year > 2005)\n                     ->  Hash  (cost=9046.83..9046.83 rows=44 width=4)\n                           ->  Hash Join  (cost=992.76..9046.83 rows=44 width=4)\n                                 Hash Cond: (mk.keyword_id = k.id)\n                                 ->  Seq Scan on movie_keyword mk  (cost=0.00..6881.51 rows=446651 width=8)\n                                 ->  Hash  (cost=992.70..992.70 rows=5 width=4)\n                                       ->  Seq Scan on keyword k  (cost=0.00..992.70 rows=5 width=4)\n                                             Filter: (keyword ~~ '%sequel%'::text)\n Optimizer: planner=Custom Hook joinorder=Dynamic Programming\n(18 rows)\n\n"
+}

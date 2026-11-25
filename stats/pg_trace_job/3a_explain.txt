@@ -1,0 +1,22 @@
+                                                   QUERY PLAN                                                   
+----------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=61838.24..61838.25 rows=1 width=32)
+   ->  Hash Join  (cost=16180.90..61838.24 rows=3 width=17)
+         Hash Cond: (mi.movie_id = t.id)
+         ->  Seq Scan on movie_info mi  (cost=0.00..45610.96 rows=12363 width=4)
+               Filter: (info = ANY ('{Sweden,Norway,Germany,Denmark,Swedish,Denish,Norwegian,German}'::text[]))
+         ->  Hash  (cost=16180.69..16180.69 rows=17 width=25)
+               ->  Hash Join  (cost=9047.38..16180.69 rows=17 width=25)
+                     Hash Cond: (t.id = mk.movie_id)
+                     ->  Seq Scan on title t  (cost=0.00..6756.40 rows=100464 width=21)
+                           Filter: (production_year > 2005)
+                     ->  Hash  (cost=9046.83..9046.83 rows=44 width=4)
+                           ->  Hash Join  (cost=992.76..9046.83 rows=44 width=4)
+                                 Hash Cond: (mk.keyword_id = k.id)
+                                 ->  Seq Scan on movie_keyword mk  (cost=0.00..6881.51 rows=446651 width=8)
+                                 ->  Hash  (cost=992.70..992.70 rows=5 width=4)
+                                       ->  Seq Scan on keyword k  (cost=0.00..992.70 rows=5 width=4)
+                                             Filter: (keyword ~~ '%sequel%'::text)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(18 rows)
+

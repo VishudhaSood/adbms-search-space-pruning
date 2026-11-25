@@ -1,0 +1,24 @@
+                                                               QUERY PLAN                                                               
+----------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=48399.46..48399.47 rows=1 width=32)
+   ->  Nested Loop  (cost=6433.89..48399.46 rows=1 width=17)
+         Join Filter: (t.id = mi.movie_id)
+         ->  Nested Loop  (cost=6433.89..41161.80 rows=1 width=8)
+               Join Filter: (it.id = mi.info_type_id)
+               ->  Hash Join  (cost=6433.89..41158.26 rows=1 width=12)
+                     Hash Cond: (mi.movie_id = mc.movie_id)
+                     ->  Seq Scan on movie_info mi  (cost=0.00..34524.85 rows=53203 width=8)
+                           Filter: (info = ANY ('{USA,America}'::text[]))
+                     ->  Hash  (cost=6433.87..6433.87 rows=1 width=4)
+                           ->  Nested Loop  (cost=0.00..6433.87 rows=1 width=4)
+                                 Join Filter: (ct.id = mc.company_type_id)
+                                 ->  Seq Scan on company_type ct  (cost=0.00..1.05 rows=1 width=4)
+                                       Filter: ((kind)::text = 'production companies'::text)
+                                 ->  Seq Scan on movie_companies mc  (cost=0.00..6432.77 rows=4 width=8)
+                                       Filter: ((note ~~ '%(VHS)%'::text) AND (note ~~ '%(USA)%'::text) AND (note ~~ '%(1994)%'::text))
+               ->  Seq Scan on info_type it  (cost=0.00..2.13 rows=113 width=4)
+         ->  Seq Scan on title t  (cost=0.00..6756.40 rows=38501 width=21)
+               Filter: (production_year > 2010)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(20 rows)
+

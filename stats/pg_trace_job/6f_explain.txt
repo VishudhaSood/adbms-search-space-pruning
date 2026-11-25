@@ -1,0 +1,25 @@
+                                                                                 QUERY PLAN                                                                                  
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=128784.62..128784.63 rows=1 width=96)
+   ->  Hash Join  (cost=53725.65..128775.43 rows=1226 width=46)
+         Hash Cond: (ci.person_id = n.id)
+         ->  Hash Join  (cost=16703.62..91750.17 rows=1226 width=35)
+               Hash Cond: (ci.movie_id = t.id)
+               ->  Seq Scan on cast_info ci  (cost=0.00..61465.54 rows=3620154 width=8)
+               ->  Hash  (cost=16703.14..16703.14 rows=38 width=39)
+                     ->  Hash Join  (cost=9432.16..16703.14 rows=38 width=39)
+                           Hash Cond: (t.id = mk.movie_id)
+                           ->  Seq Scan on title t  (cost=0.00..6756.40 rows=137119 width=21)
+                                 Filter: (production_year > 2000)
+                           ->  Hash  (cost=9431.29..9431.29 rows=70 width=18)
+                                 ->  Hash Join  (cost=1377.22..9431.29 rows=70 width=18)
+                                       Hash Cond: (mk.keyword_id = k.id)
+                                       ->  Seq Scan on movie_keyword mk  (cost=0.00..6881.51 rows=446651 width=8)
+                                       ->  Hash  (cost=1377.12..1377.12 rows=8 width=18)
+                                             ->  Seq Scan on keyword k  (cost=0.00..1377.12 rows=8 width=18)
+                                                   Filter: (keyword = ANY ('{superhero,sequel,second-part,marvel-comics,based-on-comic,tv-special,fight,violence}'::text[]))
+         ->  Hash  (cost=24116.46..24116.46 rows=1032446 width=19)
+               ->  Seq Scan on name n  (cost=0.00..24116.46 rows=1032446 width=19)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(21 rows)
+

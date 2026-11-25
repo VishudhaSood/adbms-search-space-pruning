@@ -1,0 +1,25 @@
+                                              QUERY PLAN                                              
+------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=113474.61..113474.62 rows=1 width=96)
+   ->  Nested Loop  (cost=7749.14..113474.61 rows=1 width=46)
+         Join Filter: (n.id = ci.person_id)
+         ->  Nested Loop  (cost=7749.14..86775.74 rows=1 width=35)
+               Join Filter: (t.id = mk.movie_id)
+               ->  Hash Join  (cost=6756.42..77725.03 rows=29 width=29)
+                     Hash Cond: (ci.movie_id = t.id)
+                     ->  Seq Scan on cast_info ci  (cost=0.00..61465.54 rows=3620154 width=8)
+                     ->  Hash  (cost=6756.40..6756.40 rows=2 width=21)
+                           ->  Seq Scan on title t  (cost=0.00..6756.40 rows=2 width=21)
+                                 Filter: (production_year > 2014)
+               ->  Materialize  (cost=992.71..9046.83 rows=9 width=18)
+                     ->  Hash Join  (cost=992.71..9046.78 rows=9 width=18)
+                           Hash Cond: (mk.keyword_id = k.id)
+                           ->  Seq Scan on movie_keyword mk  (cost=0.00..6881.51 rows=446651 width=8)
+                           ->  Hash  (cost=992.70..992.70 rows=1 width=18)
+                                 ->  Seq Scan on keyword k  (cost=0.00..992.70 rows=1 width=18)
+                                       Filter: (keyword = 'marvel-cinematic-universe'::text)
+         ->  Seq Scan on name n  (cost=0.00..26697.58 rows=103 width=19)
+               Filter: (name ~~ '%Downey%Robert%'::text)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(21 rows)
+
