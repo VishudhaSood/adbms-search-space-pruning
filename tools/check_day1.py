@@ -57,7 +57,7 @@ for q in QUERIES:
 # 3. Same join order? Compare the order tables appear in each plan tree
 print("3. Table order in the chosen plan")
 def calcite_tables(n):
-    out = [n["table"]] if "table" in n else []
+    out = [n["table"].split("__")[0]] if "table" in n else []   # alias tables: "b__b1" is table b
     for k in n.get("children", []):
         out += calcite_tables(k)
     return out

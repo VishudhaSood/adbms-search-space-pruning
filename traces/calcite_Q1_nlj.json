@@ -1,66 +1,75 @@
 {
   "optimizer" : "calcite",
   "query" : "Q1",
+  "light_trace" : false,
+  "trace_detail_limit" : 100000,
   "sql" : "SELECT * FROM a WHERE x = 3",
   "events" : [ {
     "step" : 1,
-    "node" : 5,
+    "t_us" : 156,
+    "node" : 210334,
     "op" : "LogicalTableScan",
-    "subset_at_registration" : "rel#8:RelSubset#0.NONE.[]",
+    "subset_at_registration" : "rel#210337:RelSubset#0.NONE.[]",
     "rule" : "initial",
     "physical" : false,
     "result" : "registered"
   }, {
     "step" : 2,
-    "node" : 9,
+    "t_us" : 215,
+    "node" : 210338,
     "op" : "LogicalFilter",
-    "subset_at_registration" : "rel#10:RelSubset#1.NONE.[]",
+    "subset_at_registration" : "rel#210339:RelSubset#1.NONE.[]",
     "rule" : "initial",
     "physical" : false,
     "result" : "registered"
   }, {
     "step" : 3,
-    "node" : 11,
+    "t_us" : 239,
+    "node" : 210340,
     "op" : "LogicalProject",
-    "subset_at_registration" : "rel#12:RelSubset#2.NONE.[]",
+    "subset_at_registration" : "rel#210341:RelSubset#2.NONE.[]",
     "rule" : "initial",
     "physical" : false,
     "result" : "registered"
   }, {
     "step" : 4,
-    "node" : 14,
+    "t_us" : 282,
+    "node" : 210343,
     "op" : "AbstractConverter",
-    "subset_at_registration" : "rel#13:RelSubset#2.ENUMERABLE.[]",
+    "subset_at_registration" : "rel#210342:RelSubset#2.ENUMERABLE.[]",
     "rule" : "initial",
     "physical" : true,
     "result" : "registered"
   }, {
     "step" : 5,
-    "node" : 15,
+    "t_us" : 5924,
+    "node" : 210344,
     "op" : "EnumerableTableScan",
-    "subset_at_registration" : "rel#16:RelSubset#0.ENUMERABLE.[]",
+    "subset_at_registration" : "rel#210345:RelSubset#0.ENUMERABLE.[]",
     "rule" : "EnumerableTableScanRule(in:NONE,out:ENUMERABLE)",
     "physical" : true,
     "result" : "registered"
   }, {
     "step" : 6,
-    "node" : 17,
+    "t_us" : 6058,
+    "node" : 210346,
     "op" : "EnumerableFilter",
-    "subset_at_registration" : "rel#18:RelSubset#1.ENUMERABLE.[]",
+    "subset_at_registration" : "rel#210347:RelSubset#1.ENUMERABLE.[]",
     "rule" : "EnumerableFilterRule(in:NONE,out:ENUMERABLE)",
     "physical" : true,
     "result" : "registered"
   }, {
     "step" : 7,
-    "node" : 19,
+    "t_us" : 22520,
+    "node" : 210348,
     "op" : "EnumerableProject",
-    "subset_at_registration" : "rel#13:RelSubset#2.ENUMERABLE.[]",
+    "subset_at_registration" : "rel#210342:RelSubset#2.ENUMERABLE.[]",
     "rule" : "EnumerableProjectRule(in:NONE,out:ENUMERABLE)",
     "physical" : true,
     "result" : "registered"
   } ],
   "nodes" : [ {
-    "node" : 5,
+    "node" : 210334,
     "op" : "LogicalTableScan",
     "physical" : false,
     "set" : 0,
@@ -70,7 +79,7 @@
     "chosen" : false,
     "winner" : false
   }, {
-    "node" : 9,
+    "node" : 210338,
     "op" : "LogicalFilter",
     "physical" : false,
     "set" : 1,
@@ -83,7 +92,7 @@
     "chosen" : false,
     "winner" : false
   }, {
-    "node" : 11,
+    "node" : 210340,
     "op" : "LogicalProject",
     "physical" : false,
     "set" : 2,
@@ -96,7 +105,7 @@
     "chosen" : false,
     "winner" : false
   }, {
-    "node" : 14,
+    "node" : 210343,
     "op" : "AbstractConverter",
     "physical" : true,
     "set" : 2,
@@ -109,7 +118,7 @@
     "chosen" : false,
     "winner" : false
   }, {
-    "node" : 15,
+    "node" : 210344,
     "op" : "EnumerableTableScan",
     "physical" : true,
     "set" : 0,
@@ -121,7 +130,7 @@
     "chosen" : true,
     "winner" : true
   }, {
-    "node" : 17,
+    "node" : 210346,
     "op" : "EnumerableFilter",
     "physical" : true,
     "set" : 1,
@@ -136,7 +145,7 @@
     "chosen" : true,
     "winner" : true
   }, {
-    "node" : 19,
+    "node" : 210348,
     "op" : "EnumerableProject",
     "physical" : true,
     "set" : 2,
@@ -163,22 +172,23 @@
   } ],
   "timeline" : [ {
     "step" : 7,
+    "t_us" : 22618,
     "startup" : 0.0,
     "total" : 17.500001,
     "plan" : {
-      "node" : 19,
+      "node" : 210348,
       "op" : "EnumerableProject",
       "startup" : 0.0,
       "total" : 17.500001,
       "rows" : 100.0,
       "children" : [ {
-        "node" : 17,
+        "node" : 210346,
         "op" : "EnumerableFilter",
         "startup" : 0.0,
         "total" : 17.5,
         "rows" : 100.0,
         "children" : [ {
-          "node" : 15,
+          "node" : 210344,
           "op" : "EnumerableTableScan",
           "startup" : 0.0,
           "total" : 15.0,
@@ -189,6 +199,7 @@
       } ]
     }
   } ],
+  "firings" : [ [ 5781, "EnumerableTableScanRule(in:NONE,out:ENUMERABLE)", 1 ], [ 6026, "EnumerableFilterRule(in:NONE,out:ENUMERABLE)", 1 ], [ 15842, "EnumerableProjectRule(in:NONE,out:ENUMERABLE)", 1 ], [ 22735, "ExpandConversionRule", 0 ] ],
   "summary" : {
     "registered" : 7,
     "registered_logical" : 3,
@@ -198,22 +209,30 @@
     "relsets" : 3,
     "subsets" : 6,
     "winners" : 3,
-    "chosen" : 3
+    "chosen" : 3,
+    "planning_us_traced_this_run" : 22997,
+    "light_trace" : false,
+    "reps" : 3,
+    "planning_us_untraced_median" : 26169.324,
+    "planning_us_traced_median" : 22606.526,
+    "planning_us_untraced_all" : [ 22117, 28337, 24001 ],
+    "planning_us_traced_all" : [ 25304, 22220, 22992 ],
+    "replay_scale" : 1.1576004203387995
   },
   "final_plan" : {
-    "node" : 19,
+    "node" : 210348,
     "op" : "EnumerableProject",
     "startup" : 0.0,
     "total" : 17.500001,
     "rows" : 100.0,
     "children" : [ {
-      "node" : 17,
+      "node" : 210346,
       "op" : "EnumerableFilter",
       "startup" : 0.0,
       "total" : 17.5,
       "rows" : 100.0,
       "children" : [ {
-        "node" : 15,
+        "node" : 210344,
         "op" : "EnumerableTableScan",
         "startup" : 0.0,
         "total" : 15.0,
@@ -222,5 +241,13 @@
         "children" : [ ]
       } ]
     } ]
+  },
+  "timing" : {
+    "reps" : 3,
+    "planning_us_untraced_median" : 26169.324,
+    "planning_us_traced_median" : 22606.526,
+    "planning_us_untraced_all" : [ 22117, 28337, 24001 ],
+    "planning_us_traced_all" : [ 25304, 22220, 22992 ],
+    "replay_scale" : 1.1576004203387995
   }
 }

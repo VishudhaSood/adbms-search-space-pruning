@@ -181,8 +181,10 @@ def main(argv):
             continue
         if job:   # Calcite planned a rewritten copy (quoted, alias tables); PostgreSQL gets JOB's own text
             sql = open(f"job/{q}.sql").read().strip().rstrip(";")
-        else:
-            sql = t["sql"].strip().rstrip(";")
+        else:     # PostgreSQL's text from tools/queries.txt (Calcite's copy may use "<table>__<alias>" tables)
+            pg_sql = {l.split("|", 1)[0]: l.split("|", 1)[1].strip()
+                      for l in open("tools/queries.txt") if "|" in l}
+            sql = pg_sql.get(q, t["sql"]).strip().rstrip(";")
         pg = None
         for pgf in ([f"traces/job/pg_{q}.json", f"traces/pg_{q}.json"] if job else [f"traces/pg_{q}.json"]):
             if os.path.exists(pgf):

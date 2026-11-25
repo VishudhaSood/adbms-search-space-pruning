@@ -1,0 +1,27 @@
+nohup: ignoring input
+== calcite_run: warmup=3 reps=3 only=Q1,Q2,Q3,Q4,Q5,Q6,Q8,Q9,Q10,Q11,Q12,Q13,Q14
+== calcite_run_q7: warmup=0 reps=1 only=Q7
+== calcite_run_nlj: nlj warmup=3 reps=3 only=Q1,Q2,Q3,Q4,Q5,Q6,Q8,Q9,Q10,Q11,Q12,Q13,Q14
+== calcite_run_nlj_q7: nlj warmup=0 reps=1 only=Q7
+== calcite_run_topdown: topdown warmup=3 reps=3 only=Q1,Q2,Q3,Q4,Q5,Q6,Q8,Q9,Q10,Q11,Q12,Q13,Q14
+== calcite_run_topdown_q7: topdown warmup=0 reps=1 only=Q7
+== calcite_run_nosort: nosort warmup=30 only=Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14
+== calcite_run_nosort_topdown: nosort topdown warmup=30 only=Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14
+== calcite_run_nosort_nocross: nosort nocross warmup=30 only=Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14
+== calcite_run_nosort_nocross_exchange: nosort nocross exchange warmup=30 only=Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14
+== calcite_run_nosort_topdown_nocross: topdown nosort nocross warmup=30 only=Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14
+== calcite_run_nosort_topdown_nocross_exchange: topdown nosort nocross exchange warmup=30 only=Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14
+
+== checks against PostgreSQL (expected: Q8 differs in _topdown and _nosort_topdown; Q7 in the two nocross modes without exchange)
+(default)                            differs: Q14
+_nlj                                 differs: Q14
+_topdown                             differs: Q11 Q12 Q14 Q8
+_nosort                              differs: Q11 Q12 Q14
+_nosort_topdown                      differs: Q11 Q12 Q14 Q8
+_nosort_nocross                      differs: Q11 Q12 Q14 Q7
+_nosort_nocross_exchange             differs: Q11 Q12 Q14
+_nosort_topdown_nocross              differs: Q11 Q12 Q14 Q7
+_nosort_topdown_nocross_exchange     differs: Q11 Q12 Q14
+
+== timestamps: traces without t_us
+   traces/calcite_Q7.json traces/calcite_Q7_nlj.json
