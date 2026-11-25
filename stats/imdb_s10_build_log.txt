@@ -1,2 +1,225 @@
+nohup: ignoring input
 == 1. sampling imdb at p = 0.1 (schema s10)
-psql: error: connection to server on socket "/tmp/.s.PGSQL.5432" failed: FATAL:  database "imdb" does not exist
+Timing is on.
+SET
+Time: 0.767 ms
+psql:sql/sample_imdb.sql:31: NOTICE:  schema "s10" does not exist, skipping
+DROP SCHEMA
+Time: 2.639 ms
+CREATE SCHEMA
+Time: 9.373 ms
+SELECT 1
+Time: 52.137 ms
+CREATE FUNCTION
+Time: 10.800 ms
+Time: 7.774 ms
+DO
+Time: 171.731 ms
+INSERT 0 252832
+Time: 7155.472 ms (00:07.155)
+INSERT 0 260387
+Time: 5488.695 ms (00:05.489)
+INSERT 0 1478148
+Time: 38494.602 ms (00:38.495)
+INSERT 0 138249
+Time: 3600.164 ms (00:03.600)
+INSERT 0 446651
+Time: 7649.008 ms (00:07.649)
+INSERT 0 3620154
+Time: 88591.344 ms (01:28.591)
+INSERT 0 13421
+Time: 590.710 ms
+INSERT 0 36048
+Time: 1472.627 ms (00:01.473)
+INSERT 0 3188
+Time: 134.289 ms
+INSERT 0 1032446
+Time: 64823.272 ms (01:04.823)
+INSERT 0 532440
+Time: 28418.782 ms (00:28.419)
+INSERT 0 57707
+Time: 2432.582 ms (00:02.433)
+INSERT 0 51256
+Time: 2006.743 ms (00:02.007)
+INSERT 0 462063
+Time: 19589.139 ms (00:19.589)
+INSERT 0 2043846
+Time: 85357.357 ms (01:25.357)
+INSERT 0 113
+Time: 7.538 ms
+INSERT 0 7
+Time: 6.940 ms
+INSERT 0 12
+Time: 7.332 ms
+INSERT 0 4
+Time: 5.647 ms
+INSERT 0 4
+Time: 6.362 ms
+INSERT 0 18
+Time: 4.724 ms
+DROP FUNCTION
+Time: 20.381 ms
+CREATE TABLE
+Time: 39.060 ms
+DO
+Time: 88565.891 ms (01:28.566)
+CREATE FUNCTION
+Time: 32.630 ms
+CREATE TABLE
+Time: 39.763 ms
+INSERT 0 4
+Time: 248299.464 ms (04:08.299)
+SELECT 2
+Time: 579.183 ms
+
+== sample
+  p  | threshold |                     rule                     
+-----+-----------+----------------------------------------------
+ 0.1 | 429496729 | h(x) = (x * 2654435761) mod 2^32 < threshold
+(1 row)
+
+Time: 2.490 ms
+== rows per table (movie tables should be near p; lookup tables higher; type tables 1.0)
+       tbl       | full_rows | sample_rows | ratio  
+-----------------+-----------+-------------+--------
+ movie_keyword   |   4523930 |      446651 | 0.0987
+ complete_cast   |    135086 |       13421 | 0.0994
+ movie_info      |  14835720 |     1478148 | 0.0996
+ aka_title       |    361472 |       36048 | 0.0997
+ movie_companies |   2609129 |      260387 | 0.0998
+ cast_info       |  36244344 |     3620154 | 0.0999
+ title           |   2528312 |      252832 | 0.1000
+ movie_info_idx  |   1380035 |      138249 | 0.1002
+ movie_link      |     29997 |        3188 | 0.1063
+ char_name       |   3140339 |      532440 | 0.1695
+ company_name    |    234997 |       57707 | 0.2456
+ name            |   4167491 |     1032446 | 0.2477
+ keyword         |    134170 |       51256 | 0.3820
+ aka_name        |    901343 |      462063 | 0.5126
+ person_info     |   2963664 |     2043846 | 0.6896
+ comp_cast_type  |         4 |           4 | 1.0000
+ company_type    |         4 |           4 | 1.0000
+ info_type       |       113 |         113 | 1.0000
+ kind_type       |         7 |           7 | 1.0000
+ link_type       |        18 |          18 | 1.0000
+ role_type       |        12 |          12 | 1.0000
+(21 rows)
+
+Time: 11.262 ms
+== 2-table joins on movie_id (should be near p, not p^2)
+            join_name             | full_rows | sample_rows | ratio  | ratio_over_p 
+----------------------------------+-----------+-------------+--------+--------------
+ movie_companies x movie_info_idx |   4073078 |      407353 | 0.1000 |         1.00
+ movie_info x movie_keyword       | 235420417 |    22364449 | 0.0950 |         0.95
+ title x cast_info                |  36244344 |     3620154 | 0.0999 |         1.00
+ title x movie_companies          |   2609129 |      260387 | 0.0998 |         1.00
+(4 rows)
+
+Time: 3.549 ms
+== known losses
+                              what                              |  n   | out_of | share  
+----------------------------------------------------------------+------+--------+--------
+ movie_link rows whose linked_movie_id was dropped              | 2888 |   3188 | 0.9059
+ complete_cast rows with NULL movie_id (full DB, never sampled) |    0 | 135086 | 0.0000
+(2 rows)
+
+Time: 4.331 ms
+== 2. copying s10 into database imdb_s10
+NOTICE:  database "imdb_s10" does not exist, skipping
+21 tables in public
+== 3. VACUUM ANALYZE
+== 4. stats for Calcite -> stats/imdb_s10_tables.json
+21 tables in the stats file
+== 5. every JOB query on imdb_s10 -> stats/imdb_s10_job_check.tsv
+1a    ok          0.6s
+1b    empty       0.4s
+1c    empty       0.6s
+1d    empty       0.3s
+2a    ok          0.7s
+2b    ok          0.6s
+2c    empty       0.6s
+2d    ok          0.6s
+3a    ok          2.2s
+3b    empty       1.3s
+3c    ok          1.8s
+4a    ok          3.5s
+4b    empty       1.2s
+4c    ok          0.7s
+5a    empty       0.5s
+5b    empty       0.3s
+5c    ok          1.9s
+6a    ok          2.1s
+6b    empty      19.9s
+6c    empty       1.4s
+6d    ok          1.9s
+6e    ok          1.8s
+6f    ok          3.5s
+7a    ok       4712.4s
+7b    ok         91.7s
+7c    ok          2.5s
+8a    ok          4.8s
+8b    ok         23.4s
+8c    ok          4.0s
+8d    ok          3.9s
+9a    ok          2.2s
+9b    ok          1.8s
+9c    ok          2.5s
+9d    ok          3.2s
+10a   ok          1.1s
+10b   empty       2.4s
+10c   empty       2.1s
+11a   ok          0.7s
+11b   empty       0.9s
+11c   empty       1.7s
+11d   ok          0.7s
+12a   ok         24.4s
+12b   empty       4.0s
+12c   ok         38.6s
+13a   ok          1.7s
+13b   ok         17.9s
+13c   empty       0.6s
+13d   ok          2.0s
+14a   ok        282.3s
+14b   empty       0.6s
+14c   timeout   305.9s
+15a   ok         36.0s
+15b   empty       7.7s
+15c   ok          7.2s
+15d   ok          3.1s
+16a   ok          2.4s
+16b   ok          6.3s
+16c   ok          2.6s
+16d   ok          2.9s
+17a   ok          2.3s
+17b   ok          1.7s
+17c   ok          4.1s
+17d   ok          1.7s
+17e   ok          3.4s
+17f   ok          3.3s
+18a   ok          3.7s
+18b   empty       4.8s
+18c   ok          3.8s
+19a   ok          6.1s
+19b   empty     183.4s
+19c   ok         75.6s
+19d   ok         14.7s
+nohup: ignoring input
+bash: /tmp/resume_job_check.sh: No such file or directory
+nohup: ignoring input
+== 5. (resumed) 101 already done, running the rest on imdb_s10
+29c   timeout   378.7s
+30a   timeout   316.1s
+30b   ok         41.3s
+30c   timeout   321.3s
+31a   timeout   317.6s
+31b   ok        116.9s
+31c   ok        264.6s
+32a   empty       0.4s
+32b   ok          0.7s
+33a   empty      96.0s
+33b   empty      63.4s
+33c   empty      28.4s
+== summary
+     37 empty
+     63 ok
+     13 timeout
