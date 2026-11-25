@@ -124,7 +124,16 @@ public class Main {
       // rows sorted on b.id, so sort order becomes "interesting" (System R) / a required property (Volcano)
       "SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3 ORDER BY b.id",
             // Q10 = Q8 written in reverse join order: tests whether top-down's result depends on the starting tree
-      "SELECT * FROM d JOIN c ON c.id = d.c_id JOIN b ON b.id = c.b_id JOIN a ON a.id = b.a_id"
+      "SELECT * FROM d JOIN c ON c.id = d.c_id JOIN b ON b.id = c.b_id JOIN a ON a.id = b.a_id",
+      // Q11-Q14: ORDER BY queries where a merge join can win (professor's request; PostgreSQL side by Vishudha).
+      // Self-joins use alias tables "<table>__<alias>" (as for JOB) so b1/b2 and c1/c2 stay apart in the plan;
+      // PostgreSQL runs the same queries as written in tools/queries.txt.
+      "SELECT * FROM \"b__b1\" AS b1 JOIN \"b__b2\" AS b2 ON b1.a_id = b2.a_id ORDER BY b1.a_id",
+      "SELECT * FROM \"c__c1\" AS c1 JOIN \"c__c2\" AS c2 ON c1.b_id = c2.b_id ORDER BY c1.b_id",
+      // Q13 = Q12 without ORDER BY: the hash join should win again
+      "SELECT * FROM \"c__c1\" AS c1 JOIN \"c__c2\" AS c2 ON c1.b_id = c2.b_id",
+      // Q14 = a hash join and a merge join sharing a sort order on a.id
+      "SELECT * FROM a JOIN \"b__b1\" AS b1 ON a.id = b1.a_id JOIN \"b__b2\" AS b2 ON a.id = b2.a_id ORDER BY a.id"
     };
     List<String[]> queryList = new ArrayList<>();   // {name, sql}
     if (job) {
@@ -214,7 +223,15 @@ public class Main {
     // Merge join asks for sorted inputs through AbstractConverter placeholders. This rule turns each
     // placeholder into a LogicalSort, which ENUMERABLE_SORT_RULE then makes an EnumerableSort.
     // Without it the sorted subsets stay empty and every merge join has infinite cost.
-    if (sortEnforcer) ruleList.add(AbstractConverter.ExpandConversionRule.INSTANCE);
+    if (sortEnforcer) {
+      ruleList.add(AbstractConverter.ExpandConversionRule.INSTANCE);
+      // ORDER BY satisfied by an input that is already sorted (e.g. a merge join's output), the way PostgreSQL
+      // uses pathkeys to skip the final Sort. Without this rule Calcite always sorts on top (Q11, Q12, Q14).
+      ruleList.add(CoreRules.SORT_REMOVE);
+      // ...and the Sort has to reach the join first: SELECT * puts a Project between ORDER BY's Sort and the join,
+      // and bottom-up Volcano doesn't pass a sort requirement through a Project. This rule moves the Sort below it.
+      ruleList.add(CoreRules.SORT_PROJECT_TRANSPOSE);
+    }
     if (nlj) ruleList.add(EnumerableEquiNestedLoopJoinRule.INSTANCE);
     if (exchange) {
       ruleList.add(JoinPushThroughJoinRule.Config.LEFT.toRule());

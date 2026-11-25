@@ -1,88 +1,135 @@
 
-### SELECT * FROM a WHERE x = 3
-EnumerableProject(id=[$0], x=[$1]): rowcount = 100.0, cumulative cost = {cost=0.00..17.50}, id = 154253
-  EnumerableFilter(condition=[=($1, 3)]): rowcount = 100.0, cumulative cost = {cost=0.00..17.50}, id = 154252
-    EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 154247
+### Q1: SELECT * FROM a WHERE x = 3
+EnumerableProject(id=[$0], x=[$1]): rowcount = 100.0, cumulative cost = {cost=0.00..17.50}, id = 199130
+  EnumerableFilter(condition=[=($1, 3)]): rowcount = 100.0, cumulative cost = {cost=0.00..17.50}, id = 199129
+    EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 199124
 
 
-### SELECT * FROM a JOIN b ON a.id = b.a_id
-EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4]): rowcount = 5000.0, cumulative cost = {cost=27.50..118.68}, id = 154571
-  EnumerableProject(id=[$3], x=[$4], id0=[$0], a_id=[$1], y=[$2]): rowcount = 5000.0, cumulative cost = {cost=27.50..118.68}, id = 154570
-    EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 5000.0, cumulative cost = {cost=27.50..118.68}, id = 154569
-      EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 154541
-      EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 154539
+### Q2: SELECT * FROM a JOIN b ON a.id = b.a_id
+EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4]): rowcount = 5000.0, cumulative cost = {cost=27.50..118.68}, id = 199448
+  EnumerableProject(id=[$3], x=[$4], id0=[$0], a_id=[$1], y=[$2]): rowcount = 5000.0, cumulative cost = {cost=27.50..118.68}, id = 199447
+    EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 5000.0, cumulative cost = {cost=27.50..118.68}, id = 199446
+      EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 199418
+      EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 199416
 
 
-### SELECT * FROM a JOIN b ON a.id = b.a_id WHERE a.x = 3
-EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 155081
-  EnumerableProject(id=[$3], x=[$4], id0=[$0], a_id=[$1], y=[$2]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 155080
-    EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 155079
-      EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 155023
-      EnumerableFilter(condition=[=($1, 3)]): rowcount = 100.0, cumulative cost = {cost=0.00..17.50}, id = 155078
-        EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 155021
+### Q3: SELECT * FROM a JOIN b ON a.id = b.a_id WHERE a.x = 3
+EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 199958
+  EnumerableProject(id=[$3], x=[$4], id0=[$0], a_id=[$1], y=[$2]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 199957
+    EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 199956
+      EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 199900
+      EnumerableFilter(condition=[=($1, 3)]): rowcount = 100.0, cumulative cost = {cost=0.00..17.50}, id = 199955
+        EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 199898
 
 
-### SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3
-EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4], id1=[$5], b_id=[$6], z=[$7]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 166421
-  EnumerableProject(id=[$3], x=[$4], id0=[$5], a_id=[$6], y=[$7], id1=[$0], b_id=[$1], z=[$2]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 166420
-    EnumerableHashJoin(condition=[=($1, $5)], joinType=[inner]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 166419
-      EnumerableTableScan(table=[[pgstats, c]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 164580
-      EnumerableProject(id=[$3], x=[$4], id0=[$0], a_id=[$1], y=[$2]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 166418
-        EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 166417
-          EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 164567
-          EnumerableFilter(condition=[=($1, 3)]): rowcount = 100.0, cumulative cost = {cost=0.00..17.50}, id = 166416
-            EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 164565
+### Q4: SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3
+EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4], id1=[$5], b_id=[$6], z=[$7]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 211298
+  EnumerableProject(id=[$3], x=[$4], id0=[$5], a_id=[$6], y=[$7], id1=[$0], b_id=[$1], z=[$2]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 211297
+    EnumerableHashJoin(condition=[=($1, $5)], joinType=[inner]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 211296
+      EnumerableTableScan(table=[[pgstats, c]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 209457
+      EnumerableProject(id=[$3], x=[$4], id0=[$0], a_id=[$1], y=[$2]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 211295
+        EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 211294
+          EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 209444
+          EnumerableFilter(condition=[=($1, 3)]): rowcount = 100.0, cumulative cost = {cost=0.00..17.50}, id = 211293
+            EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 209442
 
 
-### SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id
-EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4], id1=[$5], b_id=[$6], z=[$7]): rowcount = 20000.0, cumulative cost = {cost=168.00..582.27}, id = 171593
-  EnumerableProject(id=[$6], x=[$7], id0=[$0], a_id=[$1], y=[$2], id00=[$3], b_id=[$4], z=[$5]): rowcount = 20000.0, cumulative cost = {cost=168.00..582.27}, id = 171592
-    EnumerableHashJoin(condition=[=($1, $6)], joinType=[inner]): rowcount = 20000.0, cumulative cost = {cost=168.00..582.27}, id = 171591
-      EnumerableProject(id=[$3], a_id=[$4], y=[$5], id0=[$0], b_id=[$1], z=[$2]): rowcount = 20000.0, cumulative cost = {cost=140.50..502.04}, id = 171590
-        EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 20000.0, cumulative cost = {cost=140.50..502.04}, id = 171589
-          EnumerableTableScan(table=[[pgstats, c]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 170776
-          EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 170763
-      EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 170761
+### Q5: SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id
+EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4], id1=[$5], b_id=[$6], z=[$7]): rowcount = 20000.0, cumulative cost = {cost=168.00..582.27}, id = 216470
+  EnumerableProject(id=[$6], x=[$7], id0=[$0], a_id=[$1], y=[$2], id00=[$3], b_id=[$4], z=[$5]): rowcount = 20000.0, cumulative cost = {cost=168.00..582.27}, id = 216469
+    EnumerableHashJoin(condition=[=($1, $6)], joinType=[inner]): rowcount = 20000.0, cumulative cost = {cost=168.00..582.27}, id = 216468
+      EnumerableProject(id=[$3], a_id=[$4], y=[$5], id0=[$0], b_id=[$1], z=[$2]): rowcount = 20000.0, cumulative cost = {cost=140.50..502.04}, id = 216467
+        EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 20000.0, cumulative cost = {cost=140.50..502.04}, id = 216466
+          EnumerableTableScan(table=[[pgstats, c]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 215653
+          EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 215640
+      EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 215638
 
 
-### SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id WHERE a.x = 3
-EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4], id1=[$5], b_id=[$6], z=[$7], id2=[$8], c_id=[$9], w=[$10]): rowcount = 1000.0, cumulative cost = {cost=545.18..747.68}, id = 366461
-  EnumerableProject(id=[$3], x=[$4], id0=[$5], a_id=[$6], y=[$7], id1=[$8], b_id=[$9], z=[$10], id2=[$0], c_id=[$1], w=[$2]): rowcount = 1000.0, cumulative cost = {cost=545.18..747.68}, id = 366460
-    EnumerableHashJoin(condition=[=($1, $8)], joinType=[inner]): rowcount = 1000.0, cumulative cost = {cost=545.18..747.68}, id = 366459
-      EnumerableTableScan(table=[[pgstats, d]]): rowcount = 10000.0, cumulative cost = {cost=0.00..155.00}, id = 334058
-      EnumerableProject(id=[$3], x=[$4], id0=[$5], a_id=[$6], y=[$7], id1=[$0], b_id=[$1], z=[$2]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 366458
-        EnumerableHashJoin(condition=[=($1, $5)], joinType=[inner]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 366457
-          EnumerableTableScan(table=[[pgstats, c]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 334041
-          EnumerableProject(id=[$3], x=[$4], id0=[$0], a_id=[$1], y=[$2]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 366456
-            EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 366455
-              EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 334028
-              EnumerableFilter(condition=[=($1, 3)]): rowcount = 100.0, cumulative cost = {cost=0.00..17.50}, id = 366454
-                EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 334026
+### Q6: SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id WHERE a.x = 3
+EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4], id1=[$5], b_id=[$6], z=[$7], id2=[$8], c_id=[$9], w=[$10]): rowcount = 1000.0, cumulative cost = {cost=545.18..747.68}, id = 411338
+  EnumerableProject(id=[$3], x=[$4], id0=[$5], a_id=[$6], y=[$7], id1=[$8], b_id=[$9], z=[$10], id2=[$0], c_id=[$1], w=[$2]): rowcount = 1000.0, cumulative cost = {cost=545.18..747.68}, id = 411337
+    EnumerableHashJoin(condition=[=($1, $8)], joinType=[inner]): rowcount = 1000.0, cumulative cost = {cost=545.18..747.68}, id = 411336
+      EnumerableTableScan(table=[[pgstats, d]]): rowcount = 10000.0, cumulative cost = {cost=0.00..155.00}, id = 378935
+      EnumerableProject(id=[$3], x=[$4], id0=[$5], a_id=[$6], y=[$7], id1=[$0], b_id=[$1], z=[$2]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 411335
+        EnumerableHashJoin(condition=[=($1, $5)], joinType=[inner]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 411334
+          EnumerableTableScan(table=[[pgstats, c]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 378918
+          EnumerableProject(id=[$3], x=[$4], id0=[$0], a_id=[$1], y=[$2]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 411333
+            EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 411332
+              EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 378905
+              EnumerableFilter(condition=[=($1, 3)]): rowcount = 100.0, cumulative cost = {cost=0.00..17.50}, id = 411331
+                EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 378903
 
 
-### SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id
-EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4], id1=[$5], b_id=[$6], z=[$7], id2=[$8], c_id=[$9], w=[$10]): rowcount = 10000.0, cumulative cost = {cost=727.00..960.88}, id = 450977
-  EnumerableProject(id=[$9], x=[$10], id0=[$0], a_id=[$1], y=[$2], id00=[$3], b_id=[$4], z=[$5], id1=[$6], c_id=[$7], w=[$8]): rowcount = 10000.0, cumulative cost = {cost=727.00..960.88}, id = 450976
-    EnumerableHashJoin(condition=[=($1, $9)], joinType=[inner]): rowcount = 10000.0, cumulative cost = {cost=727.00..960.88}, id = 450975
-      EnumerableProject(id=[$6], a_id=[$7], y=[$8], id0=[$0], b_id=[$1], z=[$2], id00=[$3], c_id=[$4], w=[$5]): rowcount = 10000.0, cumulative cost = {cost=699.50..907.02}, id = 450974
-        EnumerableHashJoin(condition=[=($1, $6)], joinType=[inner]): rowcount = 10000.0, cumulative cost = {cost=699.50..907.02}, id = 450973
-          EnumerableProject(id=[$3], b_id=[$4], z=[$5], id0=[$0], c_id=[$1], w=[$2]): rowcount = 10000.0, cumulative cost = {cost=559.00..740.25}, id = 450972
-            EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 10000.0, cumulative cost = {cost=559.00..740.25}, id = 450971
-              EnumerableTableScan(table=[[pgstats, d]]): rowcount = 10000.0, cumulative cost = {cost=0.00..155.00}, id = 436962
-              EnumerableTableScan(table=[[pgstats, c]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 436945
-          EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 436932
-      EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 436930
+### Q8: SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id JOIN d ON c.id = d.c_id
+EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4], id1=[$5], b_id=[$6], z=[$7], id2=[$8], c_id=[$9], w=[$10]): rowcount = 10000.0, cumulative cost = {cost=727.00..960.88}, id = 495854
+  EnumerableProject(id=[$9], x=[$10], id0=[$0], a_id=[$1], y=[$2], id00=[$3], b_id=[$4], z=[$5], id1=[$6], c_id=[$7], w=[$8]): rowcount = 10000.0, cumulative cost = {cost=727.00..960.88}, id = 495853
+    EnumerableHashJoin(condition=[=($1, $9)], joinType=[inner]): rowcount = 10000.0, cumulative cost = {cost=727.00..960.88}, id = 495852
+      EnumerableProject(id=[$6], a_id=[$7], y=[$8], id0=[$0], b_id=[$1], z=[$2], id00=[$3], c_id=[$4], w=[$5]): rowcount = 10000.0, cumulative cost = {cost=699.50..907.02}, id = 495851
+        EnumerableHashJoin(condition=[=($1, $6)], joinType=[inner]): rowcount = 10000.0, cumulative cost = {cost=699.50..907.02}, id = 495850
+          EnumerableProject(id=[$3], b_id=[$4], z=[$5], id0=[$0], c_id=[$1], w=[$2]): rowcount = 10000.0, cumulative cost = {cost=559.00..740.25}, id = 495849
+            EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 10000.0, cumulative cost = {cost=559.00..740.25}, id = 495848
+              EnumerableTableScan(table=[[pgstats, d]]): rowcount = 10000.0, cumulative cost = {cost=0.00..155.00}, id = 481839
+              EnumerableTableScan(table=[[pgstats, c]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 481822
+          EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 481809
+      EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 481807
 
 
-### SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3 ORDER BY b.id
-EnumerableSort(sort0=[$2], dir0=[ASC]): rowcount = 2000.0, cumulative cost = {cost=629.84..634.84}, id = 462365
-  EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4], id1=[$5], b_id=[$6], z=[$7]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 462364
-    EnumerableProject(id=[$3], x=[$4], id0=[$5], a_id=[$6], y=[$7], id1=[$0], b_id=[$1], z=[$2]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 462363
-      EnumerableHashJoin(condition=[=($1, $5)], joinType=[inner]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 462362
-        EnumerableTableScan(table=[[pgstats, c]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 460521
-        EnumerableProject(id=[$3], x=[$4], id0=[$0], a_id=[$1], y=[$2]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 462361
-          EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 462360
-            EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 460508
-            EnumerableFilter(condition=[=($1, 3)]): rowcount = 100.0, cumulative cost = {cost=0.00..17.50}, id = 462359
-              EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 460506
+### Q9: SELECT * FROM a JOIN b ON a.id = b.a_id JOIN c ON b.id = c.b_id WHERE a.x = 3 ORDER BY b.id
+EnumerableSort(sort0=[$2], dir0=[ASC]): rowcount = 2000.0, cumulative cost = {cost=629.84..634.84}, id = 507614
+  EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4], id1=[$5], b_id=[$6], z=[$7]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 507613
+    EnumerableProject(id=[$3], x=[$4], id0=[$5], a_id=[$6], y=[$7], id1=[$0], b_id=[$1], z=[$2]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 507612
+      EnumerableHashJoin(condition=[=($1, $5)], joinType=[inner]): rowcount = 2000.0, cumulative cost = {cost=116.18..520.18}, id = 507611
+        EnumerableTableScan(table=[[pgstats, c]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 505708
+        EnumerableProject(id=[$3], x=[$4], id0=[$0], a_id=[$1], y=[$2]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 507610
+          EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 500.0, cumulative cost = {cost=18.75..109.93}, id = 507609
+            EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 505695
+            EnumerableFilter(condition=[=($1, 3)]): rowcount = 100.0, cumulative cost = {cost=0.00..17.50}, id = 507608
+              EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 505693
+
+
+### Q10: SELECT * FROM d JOIN c ON c.id = d.c_id JOIN b ON b.id = c.b_id JOIN a ON a.id = b.a_id
+EnumerableProject(id=[$0], c_id=[$1], w=[$2], id0=[$3], b_id=[$4], z=[$5], id1=[$6], a_id=[$7], y=[$8], id2=[$9], x=[$10]): rowcount = 10000.0, cumulative cost = {cost=727.00..960.88}, id = 592112
+  EnumerableHashJoin(condition=[=($7, $9)], joinType=[inner]): rowcount = 10000.0, cumulative cost = {cost=727.00..960.88}, id = 592111
+    EnumerableHashJoin(condition=[=($4, $6)], joinType=[inner]): rowcount = 10000.0, cumulative cost = {cost=699.50..907.02}, id = 592110
+      EnumerableHashJoin(condition=[=($1, $3)], joinType=[inner]): rowcount = 10000.0, cumulative cost = {cost=559.00..740.25}, id = 592109
+        EnumerableTableScan(table=[[pgstats, d]]): rowcount = 10000.0, cumulative cost = {cost=0.00..155.00}, id = 578068
+        EnumerableTableScan(table=[[pgstats, c]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 578070
+      EnumerableTableScan(table=[[pgstats, b]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 578083
+    EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 578100
+
+
+### Q11: SELECT * FROM "b__b1" AS b1 JOIN "b__b2" AS b2 ON b1.a_id = b2.a_id ORDER BY b1.a_id
+EnumerableProject(id=[$0], a_id=[$1], y=[$2], id0=[$3], a_id0=[$4], y0=[$5]): rowcount = 25000.0, cumulative cost = {cost=770.39..1170.39}, id = 592652
+  EnumerableMergeJoin(condition=[=($1, $4)], joinType=[inner]): rowcount = 25000.0, cumulative cost = {cost=770.39..1170.39}, id = 592651
+    EnumerableSort(sort0=[$1], dir0=[ASC]): rowcount = 5000.0, cumulative cost = {cost=385.19..397.69}, id = 592649
+      EnumerableTableScan(table=[[pgstats, b__b1]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 592588
+    EnumerableSort(sort0=[$1], dir0=[ASC]): rowcount = 5000.0, cumulative cost = {cost=385.19..397.69}, id = 592650
+      EnumerableTableScan(table=[[pgstats, b__b2]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 592590
+
+
+### Q12: SELECT * FROM "c__c1" AS c1 JOIN "c__c2" AS c2 ON c1.b_id = c2.b_id ORDER BY c1.b_id
+EnumerableProject(id=[$0], b_id=[$1], z=[$2], id0=[$3], b_id0=[$4], z0=[$5]): rowcount = 80000.0, cumulative cost = {cost=3475.54..4775.54}, id = 593192
+  EnumerableMergeJoin(condition=[=($1, $4)], joinType=[inner]): rowcount = 80000.0, cumulative cost = {cost=3475.54..4775.54}, id = 593191
+    EnumerableSort(sort0=[$1], dir0=[ASC]): rowcount = 20000.0, cumulative cost = {cost=1737.77..1787.77}, id = 593189
+      EnumerableTableScan(table=[[pgstats, c__c1]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 593128
+    EnumerableSort(sort0=[$1], dir0=[ASC]): rowcount = 20000.0, cumulative cost = {cost=1737.77..1787.77}, id = 593190
+      EnumerableTableScan(table=[[pgstats, c__c2]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 593130
+
+
+### Q13: SELECT * FROM "c__c1" AS c1 JOIN "c__c2" AS c2 ON c1.b_id = c2.b_id
+EnumerableProject(id=[$0], b_id=[$1], z=[$2], id0=[$3], b_id0=[$4], z0=[$5]): rowcount = 80000.0, cumulative cost = {cost=559.00..1818.00}, id = 593504
+  EnumerableHashJoin(condition=[=($1, $4)], joinType=[inner]): rowcount = 80000.0, cumulative cost = {cost=559.00..1818.00}, id = 593503
+    EnumerableTableScan(table=[[pgstats, c__c1]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 593473
+    EnumerableTableScan(table=[[pgstats, c__c2]]): rowcount = 20000.0, cumulative cost = {cost=0.00..309.00}, id = 593475
+
+
+### Q14: SELECT * FROM a JOIN "b__b1" AS b1 ON a.id = b1.a_id JOIN "b__b2" AS b2 ON a.id = b2.a_id ORDER BY a.id
+EnumerableProject(id=[$0], x=[$1], id0=[$2], a_id=[$3], y=[$4], id1=[$5], a_id0=[$6], y0=[$7]): rowcount = 25000.0, cumulative cost = {cost=590.52..1039.27}, id = 596996
+  EnumerableMergeJoin(condition=[=($0, $6)], joinType=[inner]): rowcount = 25000.0, cumulative cost = {cost=590.52..1039.27}, id = 596995
+    EnumerableHashJoin(condition=[=($0, $3)], joinType=[inner]): rowcount = 5000.0, cumulative cost = {cost=205.33..266.58}, id = 596993
+      EnumerableSort(sort0=[$0], dir0=[ASC]): rowcount = 1000.0, cumulative cost = {cost=64.83..67.33}, id = 596992
+        EnumerableTableScan(table=[[pgstats, a]]): rowcount = 1000.0, cumulative cost = {cost=0.00..15.00}, id = 596449
+      EnumerableTableScan(table=[[pgstats, b__b1]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 596451
+    EnumerableSort(sort0=[$1], dir0=[ASC]): rowcount = 5000.0, cumulative cost = {cost=385.19..397.69}, id = 596994
+      EnumerableTableScan(table=[[pgstats, b__b2]]): rowcount = 5000.0, cumulative cost = {cost=0.00..78.00}, id = 596464
 

@@ -9,6 +9,7 @@ import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.plan.volcano.RelSubset;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Filter;
+import org.apache.calcite.rel.core.Join;
 import org.apache.calcite.rel.core.JoinInfo;
 import org.apache.calcite.rel.core.Project;
 import org.apache.calcite.rel.core.Sort;
@@ -68,7 +69,8 @@ public class PgCostModel implements BuiltInMetadata.NonCumulativeCost.Handler {
 
   /**
    * initial/final_cost_hashjoin. Right input = inner (hashed), left = outer (probe).
-   * Assumes one batch (inner fits in work_mem) and bucket clamps of 1 (true for small tables).
+   * Assumes one batch (inner fits in hash_mem). Rows per bucket follow estimate_hash_bucket_stats (see
+   * innerBucketSize): 1 for unique keys, more for duplicate keys (Q13: c.b_id has 4 rows per value).
    */
   public RelOptCost getNonCumulativeCost(EnumerableHashJoin j, RelMetadataQuery mq) {
     JoinInfo ji = j.analyzeCondition();
@@ -82,19 +84,35 @@ public class PgCostModel implements BuiltInMetadata.NonCumulativeCost.Handler {
       double matched = Math.rint(outer * (out / (outer * inner)));
       bucket = cpuOp * k * matched * 0.5 + cpuOp * k * (outer - matched) * 0.05;
       passing = matched;
-    } else {
-      bucket = cpuOp * k * outer * 0.5;
+    } else {                                          // each probe scans half of its bucket
+      double perBucket = clampRows(inner * innerBucketSize(j.getRight(), ji.rightKeys, inner, mq));
+      bucket = cpuOp * k * outer * perBucket * 0.5;
       passing = out;
     }
     double run = probe + bucket + cpuTuple * passing;
     return new PgCost(out, runCost(j.getRight(), mq) + build, build + run);
   }
 
-  /** final_cost_mergejoin, simplified: compare both inputs once + cpu_tuple_cost per output row. */
+  /**
+   * initial/final_cost_mergejoin for full merges (both inputs read to the end). Inner rows with duplicate keys are
+   * re-read: rescanratio = 1 + (output rows - inner rows) / inner rows. Run cost = comparisons on outer rows and
+   * re-read inner rows + cpu_tuple_cost per output row + the extra inner re-reads, either re-running the inner
+   * input (inner run cost x rescanratio) or reading a Materialize (inner run cost + cpu_operator_cost per re-read
+   * row), whichever is cheaper; an inner that isn't a Sort must be materialized (a seq scan can't mark/restore).
+   * The inputs' own startup and one run are already in their cumulative cost, so only the extra re-reads are added.
+   * Checked on Q11 (1170.39) and Q12 (4775.54) against PostgreSQL's EXPLAIN.
+   */
   public RelOptCost getNonCumulativeCost(EnumerableMergeJoin j, RelMetadataQuery mq) {
     int k = Math.max(1, j.analyzeCondition().leftKeys.size());
     double outer = rows(j.getLeft(), mq), inner = rows(j.getRight(), mq), out = rows(j, mq);
-    return new PgCost(out, 0, cpuOp * k * (outer + inner) + cpuTuple * out);
+    double rescanned = Math.max(0, out - inner);
+    double rescanRatio = 1 + rescanned / Math.max(1, inner);
+    double innerRun = runCost(j.getRight(), mq);
+    double bare = innerRun * rescanRatio;
+    double mat = innerRun + cpuOp * inner * rescanRatio;
+    double innerCost = isSort(j.getRight()) ? Math.min(bare, mat) : mat;
+    double run = cpuOp * k * (outer + inner * rescanRatio) + cpuTuple * out + (innerCost - innerRun);
+    return new PgCost(out, 0, run);
   }
 
   /** final_cost_nestloop, simplified (no Materialize): rescan inner per outer row. */
@@ -107,6 +125,88 @@ public class PgCostModel implements BuiltInMetadata.NonCumulativeCost.Handler {
   }
 
   // ---------- helpers ----------
+
+  /** clamp_row_est: round, at least 1. */
+  private static double clampRows(double r) {
+    return r <= 1 ? 1 : Math.rint(r);
+  }
+
+  private static boolean isSort(RelNode r) {
+    if (r instanceof RelSubset s) r = s.getBest() != null ? s.getBest() : s.getOriginal();
+    return r instanceof Sort;
+  }
+
+  /**
+   * estimate_hash_bucket_stats + ExecChooseHashTableSize: the fraction of inner rows in one hash bucket, smallest
+   * over the hash keys. nbuckets = next power of 2 of the inner rows (at least 1024, at most what hash_mem =
+   * 2 x work_mem holds). ndistinct of the key's base column is scaled by the base table's filtered rows, the
+   * fraction is 1/nbuckets or 1/ndistinct, raised for skew (first MCV frequency over the average frequency),
+   * and clamped to [1e-6, 1]. A key with no statistics gives PostgreSQL's default of 0.1.
+   */
+  private double innerBucketSize(RelNode innerRel, List<Integer> keys, double innerRows, RelMetadataQuery mq) {
+    double workMemKb = stats.costParams.getOrDefault("work_mem", 4096.0);
+    double maxPointers = workMemKb * 1024 * 2.0 / 8;            // hash_mem / sizeof(pointer)
+    double pow2 = nextPow2(maxPointers);
+    if (pow2 != maxPointers) maxPointers = pow2 / 2;
+    double nbuckets = nextPow2(Math.max(1024, Math.min(Math.ceil(innerRows), maxPointers)));
+    double best = 1.0;
+    for (int key : keys) {
+      Object[] v = baseVar(innerRel, key, mq);
+      PgStats.Column c = v == null ? null : stats.column((String) v[0], (String) v[1]);
+      PgStats.Table t = v == null ? null : stats.table((String) v[0]);
+      if (c == null || t == null || t.reltuples <= 0) { best = Math.min(best, 0.1); continue; }
+      double nd = c.nDistinctRaw >= 0 ? c.nDistinctRaw : -c.nDistinctRaw * t.reltuples;
+      if (nd <= 0) { best = Math.min(best, 0.1); continue; }
+      double avgFreq = (1 - c.nullFrac) / nd;
+      nd = clampRows(nd * (double) v[2] / t.reltuples);        // restriction clauses on the base table
+      double frac = nd > nbuckets ? 1.0 / nbuckets : 1.0 / nd;
+      double mcv = c.mcvFreqs.isEmpty() ? 0 : c.mcvFreqs.get(0);
+      if (avgFreq > 0 && mcv > avgFreq) frac *= mcv / avgFreq;
+      best = Math.min(best, Math.max(1.0e-6, Math.min(1.0, frac)));
+    }
+    return best;
+  }
+
+  private static double nextPow2(double x) {
+    double p = 1;
+    while (p < x) p *= 2;
+    return p;
+  }
+
+  /**
+   * Like baseColumn, but also through joins, as PostgreSQL's Var does: {table, column, rows of that table after
+   * its own filters}, or null.
+   */
+  private Object[] baseVar(RelNode rel, int i, RelMetadataQuery mq) {
+    if (rel instanceof RelSubset s) {
+      RelNode r = s.getBest() != null ? s.getBest() : s.getOriginal();
+      return r == null ? null : baseVar(r, i, mq);
+    }
+    if (rel instanceof TableScan ts) {
+      List<String> name = ts.getTable().getQualifiedName();
+      return new Object[] {name.get(name.size() - 1), ts.getRowType().getFieldList().get(i).getName(), rows(ts, mq)};
+    }
+    if (rel instanceof Filter f) {
+      Object[] v = baseVar(f.getInput(), i, mq);
+      if (v != null && isScan(f.getInput())) v[2] = rows(f, mq);  // the base table's own restriction
+      return v;
+    }
+    if (rel instanceof Sort s) return baseVar(s.getInput(), i, mq);
+    if (rel instanceof Project p) {
+      RexNode e = p.getProjects().get(i);
+      return e instanceof RexInputRef r ? baseVar(p.getInput(), r.getIndex(), mq) : null;
+    }
+    if (rel instanceof Join j) {
+      int nl = j.getLeft().getRowType().getFieldCount();
+      return i < nl ? baseVar(j.getLeft(), i, mq) : baseVar(j.getRight(), i - nl, mq);
+    }
+    return null;
+  }
+
+  private static boolean isScan(RelNode r) {
+    if (r instanceof RelSubset s) r = s.getBest() != null ? s.getBest() : s.getOriginal();
+    return r instanceof TableScan;
+  }
 
   private static double rows(RelNode r, RelMetadataQuery mq) {
     Double d = mq.getRowCount(r);
