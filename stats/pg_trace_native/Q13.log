@@ -1,0 +1,39 @@
+                              QUERY PLAN                               
+-----------------------------------------------------------------------
+ Hash Join  (cost=559.00..1818.00 rows=80000 width=24)
+   Hash Cond: (c1.b_id = c2.b_id)
+   ->  Seq Scan on c c1  (cost=0.00..309.00 rows=20000 width=12)
+   ->  Hash  (cost=309.00..309.00 rows=20000 width=12)
+         ->  Seq Scan on c c2  (cost=0.00..309.00 rows=20000 width=12)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(6 rows)
+
+LOG:  TRACE baserel relid=1 name=c1 t=1.1
+LOG:  TRACE kept kind=base rels=(b 1) type=SeqScan outer=- inner=- startup=0.00 total=309.00 rows=20000 keys=0 disabled=0 t=102.9
+LOG:  TRACE survivor kind=base rels=(b 1) type=SeqScan outer=- inner=- startup=0.00 total=309.00 rows=20000 keys=0 disabled=0 t=150.8
+LOG:  TRACE baserel relid=2 name=c2 t=165.2
+LOG:  TRACE kept kind=base rels=(b 2) type=SeqScan outer=- inner=- startup=0.00 total=309.00 rows=20000 keys=0 disabled=0 t=173.7
+LOG:  TRACE survivor kind=base rels=(b 2) type=SeqScan outer=- inner=- startup=0.00 total=309.00 rows=20000 keys=0 disabled=0 t=189.9
+LOG:  TRACE kept kind=join rels=(b 1 2) type=MergeJoin outer=(b 1) inner=(b 2) startup=3475.54 total=4775.54 rows=80000 keys=0 disabled=0 t=379.1
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 1) inner=(b 2) startup=0.00 total=6180309.00 rows=0 keys=0 disabled=0 t=409.3
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 1) inner=(b 2) startup=0.00 total=1000668.00 rows=0 keys=0 disabled=0 t=424.1
+LOG:  TRACE evict kind=join rels=(b 1 2) type=MergeJoin outer=(b 1) inner=(b 2) startup=3475.54 total=4775.54 rows=80000 keys=0 disabled=0 t=447.0
+LOG:  TRACE kept kind=join rels=(b 1 2) type=HashJoin outer=(b 1) inner=(b 2) startup=559.00 total=1818.00 rows=80000 keys=0 disabled=0 t=459.2
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=MergeJoin outer=(b 2) inner=(b 1) startup=3475.54 total=3575.54 rows=0 keys=0 disabled=0 t=477.9
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.00 total=6180309.00 rows=0 keys=0 disabled=0 t=665.6
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.00 total=1000668.00 rows=0 keys=0 disabled=0 t=683.9
+LOG:  TRACE rejected kind=join rels=(b 1 2) type=HashJoin outer=(b 2) inner=(b 1) startup=559.00 total=1818.00 rows=80000 keys=0 disabled=0 t=705.1
+LOG:  TRACE survivor kind=join rels=(b 1 2) type=HashJoin outer=(b 1) inner=(b 2) startup=559.00 total=1818.00 rows=80000 keys=0 disabled=0 t=720.8
+LOG:  TRACE survivor kind=join rels=(b 1 2) type=HashJoin outer=(b 1) inner=(b 2) startup=559.00 total=1818.00 rows=80000 keys=0 disabled=0 t=740.6
+LOG:  TRACE kept kind=upper rels=(b) type=HashJoin outer=(b 1) inner=(b 2) startup=559.00 total=1818.00 rows=80000 keys=0 disabled=0 t=753.5
+LOG:  TRACE survivor kind=upper rels=(b) type=HashJoin outer=(b 1) inner=(b 2) startup=559.00 total=1818.00 rows=80000 keys=0 disabled=0 t=767.0
+                              QUERY PLAN                               
+-----------------------------------------------------------------------
+ Hash Join  (cost=559.00..1818.00 rows=80000 width=24)
+   Hash Cond: (c1.b_id = c2.b_id)
+   ->  Seq Scan on c c1  (cost=0.00..309.00 rows=20000 width=12)
+   ->  Hash  (cost=309.00..309.00 rows=20000 width=12)
+         ->  Seq Scan on c c2  (cost=0.00..309.00 rows=20000 width=12)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(6 rows)
+

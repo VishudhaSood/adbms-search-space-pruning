@@ -1,0 +1,49 @@
+                             QUERY PLAN                              
+---------------------------------------------------------------------
+ Merge Join  (cost=770.39..1170.39 rows=25000 width=24)
+   Merge Cond: (b1.a_id = b2.a_id)
+   ->  Sort  (cost=385.19..397.69 rows=5000 width=12)
+         Sort Key: b1.a_id
+         ->  Seq Scan on b b1  (cost=0.00..78.00 rows=5000 width=12)
+   ->  Sort  (cost=385.19..397.69 rows=5000 width=12)
+         Sort Key: b2.a_id
+         ->  Seq Scan on b b2  (cost=0.00..78.00 rows=5000 width=12)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(9 rows)
+
+LOG:  TRACE baserel relid=1 name=b1 t=0.5
+LOG:  TRACE kept kind=base rels=(b 1) type=SeqScan outer=- inner=- startup=0.00 total=78.00 rows=5000 keys=0 disabled=0 t=64.9
+LOG:  TRACE survivor kind=base rels=(b 1) type=SeqScan outer=- inner=- startup=0.00 total=78.00 rows=5000 keys=0 disabled=0 t=93.6
+LOG:  TRACE baserel relid=2 name=b2 t=104.4
+LOG:  TRACE kept kind=base rels=(b 2) type=SeqScan outer=- inner=- startup=0.00 total=78.00 rows=5000 keys=0 disabled=0 t=111.0
+LOG:  TRACE survivor kind=base rels=(b 2) type=SeqScan outer=- inner=- startup=0.00 total=78.00 rows=5000 keys=0 disabled=0 t=123.4
+LOG:  TRACE kept kind=join rels=(b 1 2) type=MergeJoin outer=(b 1) inner=(b 2) startup=770.39 total=1170.39 rows=25000 keys=1 disabled=0 t=259.0
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 1) inner=(b 2) startup=0.00 total=390078.00 rows=0 keys=0 disabled=0 t=308.6
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 1) inner=(b 2) startup=0.00 total=62668.50 rows=0 keys=0 disabled=0 t=321.9
+LOG:  TRACE kept kind=join rels=(b 1 2) type=HashJoin outer=(b 1) inner=(b 2) startup=140.50 total=512.25 rows=25000 keys=0 disabled=0 t=340.5
+LOG:  TRACE rejected kind=join rels=(b 1 2) type=MergeJoin outer=(b 2) inner=(b 1) startup=770.39 total=1170.39 rows=25000 keys=1 disabled=0 t=369.3
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.00 total=390078.00 rows=0 keys=0 disabled=0 t=380.8
+LOG:  TRACE precheck kind=join rels=(b 1 2) type=NestLoop outer=(b 2) inner=(b 1) startup=0.00 total=62668.50 rows=0 keys=0 disabled=0 t=388.4
+LOG:  TRACE rejected kind=join rels=(b 1 2) type=HashJoin outer=(b 2) inner=(b 1) startup=140.50 total=512.25 rows=25000 keys=0 disabled=0 t=401.7
+LOG:  TRACE survivor kind=join rels=(b 1 2) type=HashJoin outer=(b 1) inner=(b 2) startup=140.50 total=512.25 rows=25000 keys=0 disabled=0 t=412.3
+LOG:  TRACE survivor kind=join rels=(b 1 2) type=MergeJoin outer=(b 1) inner=(b 2) startup=770.39 total=1170.39 rows=25000 keys=1 disabled=0 t=420.7
+LOG:  TRACE survivor kind=join rels=(b 1 2) type=HashJoin outer=(b 1) inner=(b 2) startup=140.50 total=512.25 rows=25000 keys=0 disabled=0 t=436.6
+LOG:  TRACE survivor kind=join rels=(b 1 2) type=MergeJoin outer=(b 1) inner=(b 2) startup=770.39 total=1170.39 rows=25000 keys=1 disabled=0 t=444.8
+LOG:  TRACE kept kind=upper rels=(b) type=Sort outer=- inner=- startup=2338.46 total=2400.96 rows=25000 keys=1 disabled=0 t=454.8
+LOG:  TRACE evict kind=upper rels=(b) type=Sort outer=- inner=- startup=2338.46 total=2400.96 rows=25000 keys=1 disabled=0 t=464.4
+LOG:  TRACE kept kind=upper rels=(b) type=MergeJoin outer=(b 1) inner=(b 2) startup=770.39 total=1170.39 rows=25000 keys=1 disabled=0 t=472.4
+LOG:  TRACE kept kind=upper rels=(b) type=MergeJoin outer=(b 1) inner=(b 2) startup=770.39 total=1170.39 rows=25000 keys=1 disabled=0 t=481.8
+LOG:  TRACE survivor kind=upper rels=(b) type=MergeJoin outer=(b 1) inner=(b 2) startup=770.39 total=1170.39 rows=25000 keys=1 disabled=0 t=489.4
+                             QUERY PLAN                              
+---------------------------------------------------------------------
+ Merge Join  (cost=770.39..1170.39 rows=25000 width=24)
+   Merge Cond: (b1.a_id = b2.a_id)
+   ->  Sort  (cost=385.19..397.69 rows=5000 width=12)
+         Sort Key: b1.a_id
+         ->  Seq Scan on b b1  (cost=0.00..78.00 rows=5000 width=12)
+   ->  Sort  (cost=385.19..397.69 rows=5000 width=12)
+         Sort Key: b2.a_id
+         ->  Seq Scan on b b2  (cost=0.00..78.00 rows=5000 width=12)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(9 rows)
+

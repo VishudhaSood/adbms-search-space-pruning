@@ -1,0 +1,13 @@
+                              QUERY PLAN                               
+-----------------------------------------------------------------------
+ Merge Join  (cost=3475.54..4775.54 rows=80000 width=24)
+   Merge Cond: (c1.b_id = c2.b_id)
+   ->  Sort  (cost=1737.77..1787.77 rows=20000 width=12)
+         Sort Key: c1.b_id
+         ->  Seq Scan on c c1  (cost=0.00..309.00 rows=20000 width=12)
+   ->  Sort  (cost=1737.77..1787.77 rows=20000 width=12)
+         Sort Key: c2.b_id
+         ->  Seq Scan on c c2  (cost=0.00..309.00 rows=20000 width=12)
+ Optimizer: planner=Custom Hook joinorder=Dynamic Programming
+(9 rows)
+
