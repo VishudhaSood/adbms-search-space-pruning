@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
 <title>Search Space Viewer</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -101,6 +103,14 @@ td.num { text-align: right; font-family: var(--font-mono); }
 .kpi > div { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
 .kpi .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); }
 .kpi .v { font: 600 20px var(--font-mono); }
+.tleg { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 12px var(--font-mono); color: var(--ink-2); align-items: center; }
+.tleg .lab { font: 11px var(--font-ui); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+.tleg span { display: inline-flex; align-items: center; gap: 5px; }
+.shape { font: 600 11px var(--font-ui); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink-2); }
+.clock { font: 600 15px var(--font-mono); font-variant-numeric: tabular-nums; }
+.done { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.done > div { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; }
+.done b { font-family: var(--font-mono); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -112,8 +122,10 @@ td.num { text-align: right; font-family: var(--font-mono); }
       <div class="group" id="qbtns"><span class="lab">Query</span></div>
       <div class="group" id="vbtns"><span class="lab">View</span></div>
       <div class="group" id="mbtns"><span class="lab">PostgreSQL</span></div>
+      <div class="group" id="cbtns"><span class="lab">Calcite</span></div>
     </div>
     <div class="sql" id="sql"></div>
+    <div class="tleg" id="tleg"></div>
   </header>
   <main id="main"></main>
 </div>
@@ -121,7 +133,8 @@ td.num { text-align: right; font-family: var(--font-mono); }
 
 <script>
 const DATA = /*__DATA__*/null;
-const S = { q: DATA.queries.find(x => x.q === "Q6") ? "Q6" : DATA.queries[0].q, view: "lattice", mode: "pg", p: 1000, sel: null, playing: null };
+const S = { q: DATA.queries.find(x => x.q === "Q6") ? "Q6" : DATA.queries[0].q, view: "lattice", mode: "pg", cmode: "", p: 1000, sel: null, playing: null,
+  clock: "real", speed: 0.01, tu: null };
 try { const h = location.hash.replace("#", ""); if (["lattice", "steps", "counts"].includes(h)) S.view = h; } catch (e) {}
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -131,8 +144,44 @@ function h(tag, attrs = {}, html) { const e = document.createElement(tag); for (
 const fmt = v => v == null ? "–" : (Math.abs(v) >= 1e5 ? v.toExponential(2) : (+v).toFixed(2));
 const fmtR = v => v == null ? "–" : (v >= 1e5 ? v.toExponential(1) : Math.round(v).toString());
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const Q = () => DATA.queries.find(x => x.q === S.q);
+/* Calcite has one trace per search mode; the page shows the one picked in the "Calcite" chips. */
+const CMODES = [["", "bottom-up + sorts"], ["_nosort", "bottom-up"], ["_nosort_nocross", "bottom-up, no cross"],
+  ["_nosort_nocross_exchange", "bottom-up, no cross + exchange"], ["_topdown", "top-down + sorts"], ["_nosort_topdown", "top-down"],
+  ["_nosort_topdown_nocross", "top-down, no cross"], ["_nosort_topdown_nocross_exchange", "top-down, no cross + exchange"], ["_nlj", "bottom-up + NL join"]];
+function calMode(x) { if (x.cals[S.cmode]) return S.cmode; const m = CMODES.find(([k]) => x.cals[k]); return m ? m[0] : Object.keys(x.cals)[0]; }
+function calOf(x) { const m = calMode(x); return m == null ? null : x.cals[m]; }
+const Q = () => { const x = DATA.queries.find(z => z.q === S.q); return Object.assign({}, x, { cal: calOf(x) }); };
 const setLabel = s => "{" + s.split(",").join(",") + "}";
+
+/* ---------- one fixed colour per table (by name, not position) ---------- */
+const TCOL = { a: "#e15759", b: "#4e79a7", c: "#59a14f", d: "#b07aa1", e: "#9c755f" };
+const PALETTE = ["#f28e2b", "#76b7b2", "#edc948", "#ff9da7", "#bab0ac", "#e15759", "#4e79a7", "#59a14f", "#b07aa1", "#9c755f",
+  "#8cd17d", "#d37295", "#499894", "#f1ce63", "#86bcb6", "#a0cbe8", "#fabfd2", "#d4a6c8", "#79706e", "#b6992d"];
+function tcol(t) { if (TCOL[t]) return TCOL[t]; let h = 7; for (const ch of t) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return PALETTE[h % PALETTE.length]; }
+/* tables of a plan subtree, left to right = outer side first */
+function leafOrder(n, out = []) {
+  if (!n) return out;
+  const kids = (n.c || []).filter(Boolean);
+  if (!kids.length) { const t = n.tb || n.s; if (t) t.split(",").forEach(x => { if (!out.includes(x)) out.push(x); }); return out; }
+  kids.forEach(k => leafOrder(k, out)); return out;
+}
+function strip(svg, x, y, w, hgt, tables) {
+  if (!tables.length) return; const sw = w / tables.length;
+  tables.forEach((t, i) => el("rect", { x: x + i * sw, y, width: sw + 0.5, height: hgt, fill: tcol(t) }, svg));
+}
+/* plan shape from the join tree (unary nodes such as Sort/Filter/Hash are skipped) */
+function down(n) { while (n && (n.c || []).filter(Boolean).length === 1) n = n.c.filter(Boolean)[0]; return n; }
+function isBase(n) { n = down(n); return !n || (n.c || []).filter(Boolean).length < 2; }
+function planShape(t) {
+  let left = true, right = true, bushy = false, joins = 0;
+  (function walk(n) { n = down(n); if (!n) return; const k = (n.c || []).filter(Boolean); if (k.length < 2) return;
+    joins++; const ob = isBase(k[0]), ib = isBase(k[1]); if (!ob && !ib) bushy = true; if (!ib) left = false; if (!ob) right = false; k.forEach(walk); })(t);
+  if (!joins) return "single table"; if (bushy) return "bushy"; if (left && right) return "one join";
+  return left ? "left-deep" : right ? "right-deep" : "zig-zag";
+}
+const SHAPE_TIP = { "left-deep": "every join's inner (right) input is a single table", "right-deep": "every join's outer (left) input is a single table",
+  "zig-zag": "every join has one single-table input, on either side", "bushy": "some join has a join on both sides", "one join": "two tables, one join", "single table": "no join" };
+function tableLegend(q) { return `<span class="lab">Tables</span>` + queryTables(q).map(t => `<span><i class="sw" style="background:${tcol(t)}"></i>${t}</span>`).join(""); }
 
 /* ---------- tooltip ---------- */
 const tip = $("#tip");
@@ -152,19 +201,20 @@ function connected(set, joins) {
   while (grew) { grew = false; for (const [x, y] of joins) { if (t.includes(x) && t.includes(y)) { if (seen.has(x) && !seen.has(y)) { seen.add(y); grew = true; } if (seen.has(y) && !seen.has(x)) { seen.add(x); grew = true; } } } }
   return seen.size === t.length;
 }
-function queryTables(q) { return (q.pg && q.pg.tables) || [...new Set(Object.values(q.cal.sets).flatMap(s => s.split(",")))].sort(); }
+function queryTables(q) { const c = q.cal || calOf(q); return (q.pg && q.pg.tables) || [...new Set(Object.values(c.sets).flatMap(s => s.split(",")))].sort(); }
 
 /* ---------- PostgreSQL aggregation up to a step ---------- */
 function pgState(pg, limit) {
   const per = {}; const edges = new Map(); const active = {};
   const n = limit == null ? pg.ev.length : limit;
   for (let i = 0; i < n; i++) {
-    const [s, op, ins, st, t, r, k, d, x] = pg.ev[i];
-    const a = per[s] || (per[s] = { P: 0, R: 0, E: 0, K: 0 });
+    const [s, op, ins, st, t, r, k, d, x, tu, sk] = pg.ev[i];
+    const a = per[s] || (per[s] = { P: 0, R: 0, E: 0, K: 0, B: 0 });
     a[x]++;
+    if (ins.length === 2 && ins[0].includes(",") && ins[1].includes(",")) a.B++;   // bushy candidate: a join on both sides
     if (ins.length === 2) { const key = ins[0] + ">" + s, key2 = ins[1] + ">" + s; edges.set(key, (edges.get(key) || 0) + 1); edges.set(key2, (edges.get(key2) || 0) + 1); }
     const list = active[s] || (active[s] = []);
-    if (x === "K") list.push({ op, ins, st, t, r, k, d });
+    if (x === "K") list.push({ op, ins, st, t, r, k, d, sk });
     if (x === "E") { const j = list.findIndex(p => p.op === op && p.t === t && p.st === st && p.ins.join("|") === ins.join("|")); if (j >= 0) list.splice(j, 1); }
   }
   for (const s in per) per[s].alive = (active[s] || []).length;
@@ -184,11 +234,13 @@ function calState(cal, limit) {
   const per = {}; const edges = new Map();
   for (const id of seen) {
     const nd = byId.get(id); if (!nd) continue;
-    const [nid, op, phys, set, ins, st, t, r, chosen, win] = nd;
+    const [nid, op, phys, set, ins, st, t, r, chosen, win, rule, so, traits] = nd;
     const ts = cal.sets[set]; if (!ts) continue;
-    const a = per[ts] || (per[ts] = { sets: new Set(), L: 0, Ph: 0, W: 0 });
+    const a = per[ts] || (per[ts] = { sets: new Set(), L: 0, Ph: 0, W: 0, B: 0, SO: new Set() });
     a.sets.add(set); if (phys) a.Ph++; else a.L++;
     if (limit == null && win) a.W++;
+    if (phys && win && /\[\d/.test(traits || "")) a.SO.add((so && so[0]) || traits.replace(/^\w+\./, ""));  // best plan of a sorted subset
+    if (phys && ins.length === 2 && ins.every(i => (cal.sets[i] || "").includes(","))) a.B++;
     if (ins.length === 2) for (const i of ins) { const its = cal.sets[i]; if (its && its !== ts) { const key = its + ">" + ts; edges.set(key, (edges.get(key) || 0) + 1); } }
   }
   for (const k in per) per[k].nsets = per[k].sets.size;
@@ -210,7 +262,19 @@ function calTreeSets(t) {
 }
 
 /* ---------- lattice drawing ---------- */
-const BW = 150, BH = 62, CG = 64, RG = 12, PADT = 26;
+const BW = 150, BH = 80, CG = 64, RG = 12, PADT = 26;
+/* table set -> its tables in the order the chosen plan joins them (outer first) */
+function planOrders(t) { const m = {}; (function walk(n) { if (!n) return; const lv = leafOrder(n); if (lv.length) m[[...lv].sort().join(",")] = lv; (n.c || []).forEach(walk); })(t); return m; }
+/* interesting order: a kept path (PG) / subset winner (Calcite) that is sorted. Disabled index paths don't count. */
+function sortedOn(pg, a, s, limit, st) {
+  if (!pg) { if (!a.SO || !a.SO.size) return null; const names = [...a.SO].filter(v => !v.startsWith("["));
+    return names.length ? names.slice(0, 2).join(", ") + (names.length > 2 ? " …" : "") : `${a.SO.size} sort order${a.SO.size > 1 ? "s" : ""}`; }
+  const list = limit == null && pg.surv && pg.surv[s] ? pg.surv[s].map(([op, k, d, sk]) => ({ k, d, sk })) : (st.active[s] || []);
+  const hit = list.filter(p => p.k && !p.d);
+  if (!hit.length) return null;
+  const keys = [...new Set(hit.map(p => p.sk).filter(Boolean))];
+  return keys.length ? keys.join(", ") : "its sort keys";
+}
 function drawLattice(container, q, kind, limit, compact) {
   const tables = queryTables(q);
   const levels = []; for (const s of allSubsets(tables)) { const L = s.split(",").length; (levels[L - 1] = levels[L - 1] || []).push(s); }
@@ -228,6 +292,7 @@ function drawLattice(container, q, kind, limit, compact) {
   const st = pg ? pgState(pg, limit) : calState(cal, limit);
   let chosen = new Set();
   if (limit == null) chosen = pg ? treeSets(pg.plan) : calTreeSets(cal.plan);
+  const orders = planOrders(pg ? pg.plan : cal.plan);
   const accent = css(kind === "pg" ? "--pg" : "--cal");
   // edges
   const eg = el("g", {}, svg);
@@ -243,9 +308,13 @@ function drawLattice(container, q, kind, limit, compact) {
     const g = el("g", { class: "box", tabindex: 0, role: "button", "aria-label": `Set ${setLabel(s)}` }, svg);
     const on = chosen.has(s);
     el("rect", { x, y, width: BW, height: BH, rx: 6, fill: css("--panel"), stroke: on ? css("--chosen") : (a ? css("--line-2") : css("--line")), "stroke-width": on ? 2 : 1, "stroke-dasharray": a ? "" : "4 3" }, g);
-    const lab = el("text", { x: x + 8, y: y + 16, "font-size": 12.5, "font-weight": 600, fill: a ? css("--ink") : css("--ink-3"), "font-family": css("--font-mono") }, g);
-    lab.textContent = setLabel(s);
-    if (!isConn) { const c = el("text", { x: x + BW - 8, y: y + 16, "text-anchor": "end", "font-size": 10, fill: css("--cross"), "font-weight": 600 }, g); c.textContent = "no join cond."; }
+    const lab = el("text", { x: x + 8, y: y + 20, "font-size": 12.5, "font-weight": 600, fill: a ? css("--ink") : css("--ink-3"), "font-family": css("--font-mono") }, g);
+    const tl = orders[s] || s.split(",");
+    lab.textContent = "";
+    const ap = (txt, fill) => { const sp = el("tspan", fill ? { fill } : {}, lab); sp.textContent = txt; };
+    ap("{"); tl.forEach((t, i) => { if (i) ap(","); ap(t, tcol(t)); }); ap("}");
+    strip(g, x + 1, y + 1, BW - 2, 7, tl);
+    if (!isConn) { const c = el("text", { x: x + BW - 8, y: y + 20, "text-anchor": "end", "font-size": 10, fill: css("--cross"), "font-weight": 600 }, g); c.textContent = "no join cond."; }
     if (!a) { const t = el("text", { x: x + 8, y: y + 40, "font-size": 11.5, fill: css("--ink-3") }, g); t.textContent = "not explored"; }
     else {
       let segs, total, line;
@@ -259,13 +328,27 @@ function drawLattice(container, q, kind, limit, compact) {
         total = a.L + a.Ph; line = `${total} node${total === 1 ? "" : "s"} · ${a.nsets} RelSet${a.nsets > 1 ? "s" : ""}`;
       }
       const sum = segs.reduce((m, z) => m + z[1], 0) || 1; let bx = x + 8; const bw = BW - 16;
-      segs.forEach(([c, v]) => { if (!v) return; const w = Math.max(2, bw * v / sum - 2); el("rect", { x: bx, y: y + 25, width: w, height: 9, rx: 2, fill: css(c) }, g); bx += w + 2; });
+      segs.forEach(([c, v]) => { if (!v) return; const w = Math.max(2, bw * v / sum - 2); el("rect", { x: bx, y: y + 27, width: w, height: 9, rx: 2, fill: css(c) }, g); bx += w + 2; });
       const t = el("text", { x: x + 8, y: y + 52, "font-size": 11.5, fill: css("--ink-2"), "font-family": css("--font-mono") }, g); t.textContent = line;
+      const badges = [];
+      const so = sortedOn(pg, a, s, limit, st);
+      if (so) badges.push(["sorted on " + so, "--alive"]);
+      if (a.B) badges.push([`bushy tried ×${a.B}`, "--precheck"]);
+      let bx2 = x + 8;
+      for (const [txt, c] of badges) {
+        const w = Math.min(BW - 16, 7 + txt.length * 6.1);
+        if (bx2 + w > x + BW - 4) break;
+        el("rect", { x: bx2, y: y + 60, width: w, height: 14, rx: 3, fill: css(c), opacity: 0.16 }, g);
+        const bt = el("text", { x: bx2 + 4, y: y + 71, "font-size": 10, "font-weight": 600, fill: css(c) }, g); bt.textContent = txt;
+        bx2 += w + 4;
+      }
     }
     const tipHtml = () => {
       if (!a) return `<b>${setLabel(s)}</b><br>${isConn ? "never built" : "never built: no join condition between these tables"}`;
-      if (pg) { const alive = limit == null ? (pg.retained[s] ?? a.alive) : a.alive; return `<b>${setLabel(s)}</b><br>pruned before building: ${a.P}<br>rejected on arrival: ${a.R}<br>evicted later: ${a.E}<br>kept: ${alive}`; }
-      return `<b>${setLabel(s)}</b><br>RelSets: ${a.nsets}<br>logical nodes: ${a.L}<br>physical nodes: ${a.Ph}` + (limit == null ? `<br>winners: ${a.W}` : "") + (isConn ? "" : "<br><b>cross product</b>: PostgreSQL never builds this set");
+      const so = sortedOn(pg, a, s, limit, st), order = orders[s] ? `<br>join order in the plan: ${orders[s].join(" → ")}` : "";
+      const extra = (so ? `<br><b>interesting order</b>: a path sorted on ${so} is kept` : "") + (a.B ? `<br><b>bushy</b> candidates (a join on both sides): ${a.B}` : "") + order;
+      if (pg) { const alive = limit == null ? (pg.retained[s] ?? a.alive) : a.alive; return `<b>${setLabel(s)}</b><br>pruned before building: ${a.P}<br>rejected on arrival: ${a.R}<br>evicted later: ${a.E}<br>kept: ${alive}` + extra; }
+      return `<b>${setLabel(s)}</b><br>RelSets: ${a.nsets}<br>logical nodes: ${a.L}<br>physical nodes: ${a.Ph}` + (limit == null ? `<br>winners: ${a.W}` : "") + extra + (isConn ? "" : "<br><b>cross product</b>: PostgreSQL never builds this set");
     };
     g.addEventListener("mousemove", e => showTip(e, tipHtml())); g.addEventListener("mouseleave", hideTip);
     const pick = () => { S.sel = { kind, set: s }; renderDetail(); };
@@ -297,10 +380,11 @@ function drawTree(container, tree, kind) {
     const x = z.x + 2, y = z.d * (NH + VG) + 2; const n = z.n;
     const isJoin = /Join|Loop/.test(n.o || "");
     el("rect", { x, y, width: NW, height: NH, rx: 5, fill: css("--panel"), stroke: isJoin ? accent : css("--line-2"), "stroke-width": isJoin ? 1.8 : 1 }, svg);
-    const t1 = el("text", { x: x + 8, y: y + 17, "font-size": 12, "font-weight": 600, fill: css("--ink") }, svg);
+    strip(svg, x + 1, y + 1, NW - 2, 8, leafOrder(n));          // its tables' colours, outer side first
+    const t1 = el("text", { x: x + 8, y: y + 21, "font-size": 12, "font-weight": 600, fill: css("--ink") }, svg);
     const name = (n.o || "?") + (n.tb ? " " + n.tb : (!isJoin && n.s ? " " + n.s : ""));
     t1.textContent = name.length > 20 ? name.slice(0, 19) + "…" : name;
-    const t2 = el("text", { x: x + 8, y: y + 35, "font-size": 11, fill: css("--ink-2"), "font-family": css("--font-mono") }, svg);
+    const t2 = el("text", { x: x + 8, y: y + 38, "font-size": 11, fill: css("--ink-2"), "font-family": css("--font-mono") }, svg);
     t2.textContent = n.t != null ? `${fmt(n.t)} · ${fmtR(n.r)} rows` : "";
   }
   container.appendChild(svg);
@@ -313,28 +397,41 @@ function legendCal(final) { return `<div class="legend"><span><i class="sw" styl
 function pgStats(pg) { const s = pg.summary; return `<div class="stats"><span>costed <b>${s.considered}</b></span><span>built <b>${s.built}</b></span><span>precheck <b>${s.pruned_precheck}</b></span><span>rejected <b>${s.pruned_on_arrival}</b></span><span>evicted <b>${s.evicted_later}</b></span><span>kept <b>${s.retained}</b></span><span>sets <b>${s.sets_built}</b></span></div>`; }
 function calStats(c) { const s = c.summary; return `<div class="stats"><span>nodes <b>${s.registered}</b></span><span>logical <b>${s.registered_logical}</b></span><span>physical <b>${s.registered_physical}</b></span><span>rule firings <b>${s.rules_produced}</b></span><span>RelSets <b>${s.relsets}</b></span><span>winners <b>${s.winners}</b></span><span>in plan <b>${s.chosen}</b></span></div>`; }
 
+function cmodeLabel(x) { const m = calMode(x); const f = CMODES.find(([k]) => k === m); return f ? f[1] : (m || "default"); }
+function planPanel(title, tree, kind, note) {
+  const sec = h("section", { class: "panel" });
+  const shp = tree ? planShape(tree) : null;
+  sec.innerHTML = `<div class="ph"><h2><i class="dot" style="background:var(${kind === "pg" ? "--pg" : "--cal"})"></i>${title}</h2>${shp ? `<span class="shape" title="${SHAPE_TIP[shp] || ""}">${shp}</span>` : ""}</div>`;
+  const sc = h("div", { class: "scroll" }); drawTree(sc, tree, kind); sec.appendChild(sc);
+  if (note) sec.insertAdjacentHTML("beforeend", `<p class="note">${note}</p>`);
+  return sec;
+}
 function viewLattice(main) {
-  const q = Q(); const cols = h("div", { class: "cols" });
-  const pg = q[S.mode];
+  const q = Q(); const pg = q[S.mode];
+  // 1. the chosen plans, on top
+  const plans = h("div", { class: "cols" });
+  const tcost = t => t && t.t != null ? ` · cost ${fmt(t.t)}` : "";
+  const ob = /order\s+by/i.test(q.sql) ? " The ORDER BY sort is planned after the join search (not traced), so this tree and its cost are the join part only." : "";
+  plans.append(planPanel(`PostgreSQL chosen plan${tcost(pg && pg.plan)}`, pg && pg.plan, "pg", "Each node's colour strip shows its tables in join order: outer (left) side first." + ob),
+               planPanel(`Calcite chosen plan · ${cmodeLabel(q)}${tcost(q.cal && q.cal.plan)}`, q.cal && q.cal.plan, "cal", null));
+  main.appendChild(plans);
+  // 2. the search spaces below
+  const cols = h("div", { class: "cols" });
   const p1 = h("section", { class: "panel" });
   p1.innerHTML = `<div class="ph"><h2><i class="dot" style="background:var(--pg)"></i>PostgreSQL · dynamic programming</h2></div>`;
   if (pg) {
     p1.insertAdjacentHTML("beforeend", pgStats(pg) + legendPg());
     const sc = h("div", { class: "scroll" }); drawLattice(sc, q, "pg", null); p1.appendChild(sc);
-    p1.insertAdjacentHTML("beforeend", `<p class="note">Builds level by level: every 1-table set, then every joinable pair, and so on. Sets with no join condition between them are never built. Thick outline: sets in the final plan. Click a box for its paths.</p>`);
+    p1.insertAdjacentHTML("beforeend", `<p class="note">Builds level by level: every 1-table set, then every joinable pair, and so on. Sets with no join condition between them are never built. Thick outline: sets in the final plan. <b>sorted on …</b>: a path kept for its sort order (interesting order). <b>bushy tried</b>: join candidates with a join on both sides. Click a box for its paths.</p>`);
   } else p1.insertAdjacentHTML("beforeend", `<p class="empty">No PostgreSQL trace for ${q.q}.</p>`);
   const p2 = h("section", { class: "panel" });
-  p2.innerHTML = `<div class="ph"><h2><i class="dot" style="background:var(--cal)"></i>Calcite · Volcano memo</h2></div>`;
+  p2.innerHTML = `<div class="ph"><h2><i class="dot" style="background:var(--cal)"></i>Calcite · Volcano memo · ${cmodeLabel(q)}</h2></div>`;
   if (q.cal) {
     p2.insertAdjacentHTML("beforeend", calStats(q.cal) + legendCal(true));
     const sc = h("div", { class: "scroll" }); drawLattice(sc, q, "cal", null); p2.appendChild(sc);
-    p2.insertAdjacentHTML("beforeend", `<p class="note">Rules rewrite whole plans, and every equivalent expression stays in the memo, grouped into RelSets. One table set can hold several RelSets (column orders differ after a commute). Click a box for its nodes.</p>`);
+    p2.insertAdjacentHTML("beforeend", `<p class="note">Rules rewrite whole plans, and every equivalent expression stays in the memo, grouped into RelSets. One table set can hold several RelSets (column orders differ after a commute). <b>sorted on …</b>: the best plan of a sorted subset (a physical property, the Volcano version of an interesting order). Click a box for its nodes.</p>`);
   } else p2.insertAdjacentHTML("beforeend", `<p class="empty">No Calcite trace for ${q.q}.</p>`);
   cols.append(p1, p2); main.appendChild(cols);
-  const plans = h("div", { class: "cols" });
-  const t1 = h("section", { class: "panel" }, `<div class="ph"><h2>PostgreSQL chosen plan</h2></div>`); const s1 = h("div", { class: "scroll" }); drawTree(s1, pg && pg.plan, "pg"); t1.appendChild(s1);
-  const t2 = h("section", { class: "panel" }, `<div class="ph"><h2>Calcite chosen plan</h2></div>`); const s2 = h("div", { class: "scroll" }); drawTree(s2, q.cal && q.cal.plan, "cal"); t2.appendChild(s2);
-  plans.append(t1, t2); main.appendChild(plans);
   const det = h("section", { class: "panel detail", id: "detail" }); main.appendChild(det); renderDetail();
 }
 
@@ -345,7 +442,7 @@ function renderDetail() {
   if (kind === "pg") {
     const pg = q[S.mode]; const rows = pg.ev.map((e, i) => [i + 1, ...e]).filter(e => e[1] === set);
     const name = { P: ["precheck", "--precheck"], R: ["rejected", "--rejected"], E: ["evicted", "--evicted"], K: ["kept", "--alive"] };
-    det.innerHTML = `<h3>PostgreSQL · ${setLabel(set)} · ${rows.length} events</h3>` + (rows.length ? `<div class="tbl"><table><thead><tr><th>Step</th><th>Path</th><th>Outer ⋈ inner</th><th>Startup</th><th>Total</th><th>Rows</th><th>Sorted</th><th>Result</th></tr></thead><tbody>${rows.map(r => `<tr><td class="num">${r[0]}</td><td>${r[2]}${r[8] ? " (disabled)" : ""}</td><td>${r[3].map(setLabel).join(" ⋈ ") || "–"}</td><td class="num">${fmt(r[4])}</td><td class="num">${fmt(r[5])}</td><td class="num">${r[9] === "P" ? "–" : fmtR(r[6])}</td><td>${r[7] ? "yes" : ""}</td><td><span class="tag" style="background:var(${name[r[9]][1]})">${name[r[9]][0]}</span></td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">PostgreSQL never built this set.</p>`);
+    det.innerHTML = `<h3>PostgreSQL · ${setLabel(set)} · ${rows.length} events</h3>` + (rows.length ? `<div class="tbl"><table><thead><tr><th>Step</th><th>Path</th><th>Outer ⋈ inner</th><th>Startup</th><th>Total</th><th>Rows</th><th>Sorted</th><th>t (µs)</th><th>Result</th></tr></thead><tbody>${rows.map(r => `<tr><td class="num">${r[0]}</td><td>${r[2]}${r[8] ? " (disabled)" : ""}</td><td>${r[3].map(setLabel).join(" ⋈ ") || "–"}</td><td class="num">${fmt(r[4])}</td><td class="num">${fmt(r[5])}</td><td class="num">${r[9] === "P" ? "–" : fmtR(r[6])}</td><td>${r[7] ? (r[11] || "yes") : ""}</td><td class="num">${r[10] != null ? r[10].toFixed(1) : "–"}</td><td><span class="tag" style="background:var(${name[r[9]][1]})">${name[r[9]][0]}</span></td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">PostgreSQL never built this set.</p>`);
   } else {
     const c = q.cal; const ids = Object.entries(c.sets).filter(([, ts]) => ts === set).map(([id]) => +id);
     const rows = c.nodes.filter(n => ids.includes(n[3]));
@@ -353,51 +450,123 @@ function renderDetail() {
   }
 }
 
+/* ---------- replay clock ----------
+   Real time: every event is placed at the moment it happened, in µs since that optimizer's search started,
+   then scaled so the whole trace lasts the UNTRACED planning time (tracing itself slows planning down):
+       t_shown = t × (untraced planning time / last t of this trace)
+   Both engines share one clock, so a ~1 ms PostgreSQL search and a ~70 ms Calcite search look as different as they are. */
+function pgTimes(pg) {
+  const last = pg.timing && pg.timing.last_t_us, un = pg.timing && pg.timing.untraced_ms;
+  const sc = last && un ? un * 1000 / last : 1;
+  return { t: pg.ev.map(e => (e[9] == null ? 0 : e[9]) * sc), end: un ? un * 1000 : (last || 0), scaled: !!(last && un) };
+}
+function calTimes(cal) {
+  const last = cal.timing && cal.timing.last_t_us, un = cal.timing && cal.timing.untraced_ms;
+  const sc = last && un ? un * 1000 / last : 1;
+  const none = !(cal.times || []).some(v => v != null);
+  return { t: (cal.times || []).map(v => (v == null ? 0 : v) * sc), end: none ? 0 : (un ? un * 1000 : last), scaled: !!(last && un), none };
+}
+const countUpTo = (arr, tu) => { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] <= tu) lo = m + 1; else hi = m; } return lo; };
+const ms = us => us >= 1000 ? (us / 1000).toFixed(us >= 1e5 ? 0 : 2) + " ms" : us.toFixed(0) + " µs";
+
 function viewSteps(main) {
   const q = Q(); const pg = q[S.mode], cal = q.cal;
+  const PT = pg ? pgTimes(pg) : null, CT = cal ? calTimes(cal) : null;
+  const END = Math.max(PT ? PT.end : 0, CT ? CT.end : 0) || 1;
+  if (S.tu == null || S.tu > END) S.tu = END;
   const bar = h("div", { class: "stepbar" });
-  bar.innerHTML = `<button class="chip" id="play" aria-pressed="false">${S.playing ? "Pause" : "Play"}</button><button class="chip" id="back">◀ step</button><button class="chip" id="fwd">step ▶</button><input type="range" id="slider" min="0" max="1000" value="${S.p}" aria-label="Search progress"><span class="stats" id="pct"></span>`;
+  const speeds = [[1, "1×"], [0.1, "0.1×"], [0.01, "0.01×"], [0.001, "0.001×"]];
+  bar.innerHTML = `<button class="chip" id="play" aria-pressed="false">${S.playing ? "Pause" : "Play"}</button><button class="chip" id="back">◀ step</button><button class="chip" id="fwd">step ▶</button>
+    <input type="range" id="slider" min="0" max="1000" value="${S.clock !== "steps" ? Math.round(S.tu / END * 1000) : S.p}" aria-label="Search progress">
+    <span class="group"><span class="lab">Clock</span><button class="chip" data-clock="real" aria-pressed="${S.clock === "real"}" title="one shared clock: true speed difference">real time, shared</button><button class="chip" data-clock="own" aria-pressed="${S.clock === "own"}" title="each engine on its own real clock, stretched to the same length">real time, each own</button><button class="chip" data-clock="steps" aria-pressed="${S.clock === "steps"}">% of steps</button></span>
+    <span class="group" id="spd" ${S.clock !== "steps" ? "" : "hidden"}><span class="lab">Speed</span>${speeds.map(([v, l]) => `<button class="chip" data-speed="${v}" aria-pressed="${S.speed === v}">${l}</button>`).join("")}</span>
+    <span class="clock" id="pct"></span>`;
   main.appendChild(bar);
-  main.appendChild(h("p", { class: "note" }, "Both searches play on the same progress scale (0–100% of each optimizer's own steps). Watch the order: PostgreSQL fills the lattice left to right; Calcite jumps between levels as rules fire, and its best plan improves as cheaper alternatives appear."));
+  main.appendChild(h("p", { class: "note" }, S.clock === "real"
+    ? `<b>Real time, shared clock:</b> both searches on one clock, at their measured <b>untraced</b> planning speed (logging slows planning, so trace times are scaled down to it). A short PostgreSQL search finishes almost at once next to Calcite: that gap is the result. At 0.01×, 1 ms of planning takes 0.1 s to play; use 0.001× or "each own" to watch PostgreSQL build.`
+    : S.clock === "own"
+    ? `<b>Real time, each on its own clock:</b> each engine's events keep their real spacing, but each search is stretched to the same length, so you can watch both build. The clock shows how far into its own planning time each engine is.`
+    : "Both searches play on the same progress scale (0–100% of each optimizer's own steps). Watch the order: PostgreSQL fills the lattice left to right; Calcite jumps between levels as rules fire, and its best plan improves as cheaper alternatives appear."));
   const cols = h("div", { class: "cols" });
   const p1 = h("section", { class: "panel" }); const p2 = h("section", { class: "panel" });
   cols.append(p1, p2); main.appendChild(cols);
+  const fin = h("section", { class: "panel" }); main.appendChild(fin);
+  function ks() {
+    if (S.clock === "real") return { kp: PT ? countUpTo(PT.t, S.tu) : 0, kc: CT ? (CT.none ? cal.order.length : countUpTo(CT.t, S.tu)) : 0 };
+    if (S.clock === "own") { const f = S.tu / END; return { kp: PT ? countUpTo(PT.t, f * PT.end) : 0, kc: CT ? (CT.none ? cal.order.length : countUpTo(CT.t, f * CT.end)) : 0 }; }
+    const p = S.p / 1000; return { kp: pg ? Math.round(p * pg.ev.length) : 0, kc: cal ? Math.round(p * cal.order.length) : 0 };
+  }
   function paint() {
-    const p = S.p / 1000;
-    $("#pct").innerHTML = `<span>progress <b>${Math.round(p * 100)}%</b></span>`;
-    p1.innerHTML = `<div class="ph"><h2><i class="dot" style="background:var(--pg)"></i>PostgreSQL</h2></div>`;
+    const { kp, kc } = ks();
+    const f = S.tu / END;
+    $("#pct").innerHTML = S.clock === "real" ? `⏱ ${ms(S.tu)} <span class="stats" style="display:inline">/ ${ms(END)}</span>`
+      : S.clock === "own" ? `<span style="color:var(--pg)">${PT ? ms(f * PT.end) : "–"}</span> · <span style="color:var(--cal)">${CT && !CT.none ? ms(f * CT.end) : "–"}</span>`
+      : `${Math.round(S.p / 10)}%`;
+    p1.innerHTML = `<div class="ph"><h2><i class="dot" style="background:var(--pg)"></i>PostgreSQL</h2>${PT ? `<span class="stats">planning ${ms(PT.end)}${PT.scaled ? "" : " (traced, unscaled)"}</span>` : ""}</div>`;
     if (pg) {
-      const k = Math.round(p * pg.ev.length); const e = pg.ev[k - 1];
+      const k = kp; const e = pg.ev[k - 1];
       const name = { P: "pruned before building", R: "rejected on arrival", E: "evicted (a newer path beat it)", K: "kept" };
-      p1.insertAdjacentHTML("beforeend", `<div class="stats"><span>step <b>${k}</b> / ${pg.ev.length}</span></div><div class="evt">${e ? `${e[1]} for ${setLabel(e[0])}${e[2].length ? " = " + e[2].map(setLabel).join(" ⋈ ") : ""} · cost ${fmt(e[4])} → <b>${name[e[8]]}</b>` : "start"}</div>` + legendPg());
+      const done = k >= pg.ev.length ? ` · <b>done</b>` : "";
+      p1.insertAdjacentHTML("beforeend", `<div class="stats"><span>step <b>${k}</b> / ${pg.ev.length}${done}</span></div><div class="evt">${e ? `${e[1]} for ${setLabel(e[0])}${e[2].length ? " = " + e[2].map(setLabel).join(" ⋈ ") : ""} · cost ${fmt(e[4])} → <b>${name[e[8]]}</b>${e[10] ? ` · sorted on ${e[10]}` : ""}` : "start"}</div>` + legendPg());
       const sc = h("div", { class: "scroll" }); drawLattice(sc, q, "pg", k); p1.appendChild(sc);
-      const st = pgState(pg, k); const done = Object.keys(st.active).filter(s => st.active[s].length);
-      const top = done.sort((a, b) => b.split(",").length - a.split(",").length || (pgBest(st.active, a).t - pgBest(st.active, b).t))[0];
+      const st = pgState(pg, k); const dn = Object.keys(st.active).filter(s => st.active[s].length);
+      const top = dn.sort((a, b) => b.split(",").length - a.split(",").length || (pgBest(st.active, a).t - pgBest(st.active, b).t))[0];
       p1.insertAdjacentHTML("beforeend", `<h3 style="margin:4px 0 0;font-size:13px">Best plan so far ${top ? "for " + setLabel(top) : ""}</h3>`);
       const t = h("div", { class: "scroll" }); drawTree(t, top ? pgTreeAt(st.active, top) : null, "pg"); p1.appendChild(t);
     }
-    p2.innerHTML = `<div class="ph"><h2><i class="dot" style="background:var(--cal)"></i>Calcite</h2></div>`;
+    p2.innerHTML = `<div class="ph"><h2><i class="dot" style="background:var(--cal)"></i>Calcite · ${cmodeLabel(q)}</h2>${CT ? `<span class="stats">${CT.none ? "this trace has no timestamps (older run): shown finished; use “% of steps” or re-run this mode" : "planning " + ms(CT.end) + (CT.scaled ? "" : " (traced, unscaled)")}</span>` : ""}</div>`;
     if (cal) {
-      const k = Math.round(p * cal.order.length); const id = cal.order[k - 1]; const nd = cal.nodes.find(n => n[0] === id);
-      p2.insertAdjacentHTML("beforeend", `<div class="stats"><span>step <b>${k}</b> / ${cal.order.length}</span></div><div class="evt">${nd ? `${nd[1]} added to RelSet ${nd[3]} ${setLabel(cal.sets[nd[3]] || "?")} by ${nd[10] || "initial"}` : "start"}</div>` + legendCal(false));
+      const k = kc; const id = cal.order[k - 1]; const nd = cal.nodes.find(n => n[0] === id);
+      const done = k >= cal.order.length ? ` · <b>done</b>` : "";
+      p2.insertAdjacentHTML("beforeend", `<div class="stats"><span>step <b>${k}</b> / ${cal.order.length}${done}</span></div><div class="evt">${nd ? `${nd[1]} added to RelSet ${nd[3]} ${setLabel(cal.sets[nd[3]] || "?")} by ${nd[10] || "initial"}${nd[11] && nd[11].length ? ` · sorted on ${nd[11].join(", ")}` : ""}` : "start"}</div>` + legendCal(false));
       const sc = h("div", { class: "scroll" }); drawLattice(sc, q, "cal", k); p2.appendChild(sc);
       const snap = [...cal.timeline].reverse().find(s => s.step <= k);
       p2.insertAdjacentHTML("beforeend", `<h3 style="margin:4px 0 0;font-size:13px">Best full plan so far ${snap ? "· total " + fmt(snap.t) : ""} <span class="stats" style="display:inline">(${cal.timeline.filter(s => s.step <= k).length} of ${cal.timeline.length} improvements)</span></h3>`);
       const t = h("div", { class: "scroll" }); drawTree(t, snap && snap.plan, "cal"); p2.appendChild(t);
     }
+    // 3. at the end: planning and execution time
+    const finished = (!pg || kp >= pg.ev.length) && (!cal || kc >= cal.order.length);
+    const ex = q.exec || {}; const cm = calMode(q);
+    const calExec = ex.cal && ex.cal[cm] != null ? ex.cal[cm] : (ex.pg != null && cal && pg && planShape(cal.plan) && sameOrder(pg.plan, cal.plan) ? ex.pg : null);
+    fin.style.display = finished ? "" : "none";
+    fin.innerHTML = `<div class="ph"><h2>Replay finished</h2><span class="stats">planning = untraced median · execution = EXPLAIN ANALYZE median</span></div>
+      <div class="done"><div><span class="lab" style="color:var(--pg)">PostgreSQL</span><br>planning <b>${PT ? ms(PT.end) : "–"}</b><br>execution <b>${ex.pg != null ? ex.pg.toFixed(2) + " ms" : "– (run tools/exec_times.py)"}</b></div>
+      <div><span class="lab" style="color:var(--cal)">Calcite · ${cmodeLabel(q)}</span><br>planning <b>${CT && !CT.none ? ms(CT.end) : "–"}</b><br>execution of its plan on PostgreSQL <b>${calExec != null ? calExec.toFixed(2) + " ms" : "–"}</b>${ex.cal && ex.cal[cm] != null ? " (forced with pg_lab, task iii)" : calExec != null ? " (same plan as PostgreSQL)" : ""}</div></div>`;
   }
   const slider = $("#slider", bar);
-  slider.addEventListener("input", () => { S.p = +slider.value; paint(); });
-  const stepBy = d => { const n = Math.max(pg ? pg.ev.length : 0, cal ? cal.order.length : 0) || 1; S.p = Math.max(0, Math.min(1000, S.p + d * 1000 / n)); slider.value = S.p; paint(); };
+  const sync = () => { slider.value = S.clock !== "steps" ? Math.round(S.tu / END * 1000) : S.p; };
+  slider.addEventListener("input", () => { if (S.clock !== "steps") S.tu = +slider.value / 1000 * END; else S.p = +slider.value; paint(); });
+  const stepBy = d => {
+    if (S.clock !== "steps") {   // jump to the next / previous event of either engine
+      const sp = S.clock === "own" ? [PT ? END / (PT.end || 1) : 1, CT ? END / (CT.end || 1) : 1] : [1, 1];
+      const all = [...(PT ? PT.t.map(v => v * sp[0]) : []), ...(CT && !CT.none ? CT.t.map(v => v * sp[1]) : [])].sort((a, b) => a - b);
+      if (d > 0) { const nx = all.find(v => v > S.tu + 1e-9); S.tu = nx == null ? END : nx; }
+      else { const pv = [...all].reverse().find(v => v < S.tu - 1e-9); S.tu = pv == null ? 0 : pv; }
+    } else { const n = Math.max(pg ? pg.ev.length : 0, cal ? cal.order.length : 0) || 1; S.p = Math.max(0, Math.min(1000, S.p + d * 1000 / n)); }
+    sync(); paint();
+  };
   $("#back", bar).addEventListener("click", () => stepBy(-1)); $("#fwd", bar).addEventListener("click", () => stepBy(1));
+  bar.querySelectorAll("[data-clock]").forEach(b => b.addEventListener("click", () => { S.clock = b.dataset.clock; render(); }));
+  bar.querySelectorAll("[data-speed]").forEach(b => b.addEventListener("click", () => { S.speed = +b.dataset.speed; bar.querySelectorAll("[data-speed]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); }));
   $("#play", bar).addEventListener("click", () => {
-    if (S.playing) { clearInterval(S.playing); S.playing = null; $("#play").textContent = "Play"; return; }
-    if (S.p >= 1000) S.p = 0;
+    if (S.playing) { cancelAnimationFrame(S.playing); S.playing = null; $("#play").textContent = "Play"; return; }
+    if (S.clock !== "steps" ? S.tu >= END : S.p >= 1000) { S.tu = 0; S.p = 0; }
     $("#play").textContent = "Pause";
-    S.playing = setInterval(() => { S.p = Math.min(1000, S.p + 8); slider.value = S.p; paint(); if (S.p >= 1000) { clearInterval(S.playing); S.playing = null; $("#play").textContent = "Play"; } }, 60);
+    let last = performance.now();
+    const tick = now => {
+      const dt = now - last; last = now;
+      if (S.clock !== "steps") S.tu = Math.min(END, S.tu + dt * 1000 * S.speed); else S.p = Math.min(1000, S.p + dt * 0.13);
+      sync(); paint();
+      const end = S.clock !== "steps" ? S.tu >= END : S.p >= 1000;
+      if (end) { S.playing = null; $("#play").textContent = "Play"; } else S.playing = requestAnimationFrame(tick);
+    };
+    S.playing = requestAnimationFrame(tick);
   });
   paint();
 }
+/* same join tree, ignoring operators: then PostgreSQL's execution time stands for both */
+function treeKey(n) { n = down(n); if (!n) return ""; const k = (n.c || []).filter(Boolean); if (k.length < 2) return leafOrder(n).join(","); return "(" + k.map(treeKey).join(" ") + ")"; }
+function sameOrder(a, b) { return a && b && treeKey(a) === treeKey(b); }
 
 function viewCounts(main) {
   const qs = DATA.queries;
@@ -405,7 +574,7 @@ function viewCounts(main) {
   const mk = S.mode;
   const pts = family.map(x => ({ q: x.q, n: queryTables(x).length,
     pgC: x[mk] && x[mk].summary.considered, pgK: x[mk] && x[mk].summary.retained,
-    calR: x.cal && x.cal.summary.registered, calW: x.cal && x.cal.summary.winners }));
+    calR: calOf(x) && calOf(x).summary.registered, calW: calOf(x) && calOf(x).summary.winners }));
   const last = pts[pts.length - 1];
   if (last) main.insertAdjacentHTML("beforeend", `<div class="kpi"><div><div class="k">PostgreSQL costed · ${last.n} tables</div><div class="v">${last.pgC ?? "–"}</div></div><div><div class="k">PostgreSQL kept</div><div class="v">${last.pgK ?? "–"}</div></div><div><div class="k">Calcite nodes · ${last.n} tables</div><div class="v">${last.calR ?? "–"}</div></div><div><div class="k">Calcite winners</div><div class="v">${last.calW ?? "–"}</div></div></div>`);
   const panel = h("section", { class: "panel" });
@@ -440,23 +609,27 @@ function viewCounts(main) {
   panel.insertAdjacentHTML("beforeend", `<p class="note">PostgreSQL's "costed" includes paths thrown away by add_path_precheck before they were built. Calcite's "nodes" are RelNodes registered in the memo, logical and physical. These are not the same unit; compare how each grows with the number of tables.</p>`);
   main.appendChild(panel);
   const tp = h("section", { class: "panel" });
-  tp.innerHTML = `<div class="ph"><h2>All queries</h2></div><div class="tbl"><table><thead><tr><th>Query</th><th>Tables</th><th>PG costed</th><th>PG precheck</th><th>PG rejected</th><th>PG evicted</th><th>PG kept</th><th>PG costed (native)</th><th>Calcite nodes</th><th>Calcite RelSets</th><th>Calcite rule firings</th><th>Calcite in plan</th></tr></thead><tbody>${qs.map(x => { const a = x.pg && x.pg.summary, n = x.pg_native && x.pg_native.summary, c = x.cal && x.cal.summary; return `<tr><td>${x.q}</td><td class="num">${queryTables(x).length}</td><td class="num">${a ? a.considered : "–"}</td><td class="num">${a ? a.pruned_precheck : "–"}</td><td class="num">${a ? a.pruned_on_arrival : "–"}</td><td class="num">${a ? a.evicted_later : "–"}</td><td class="num">${a ? a.retained : "–"}</td><td class="num">${n ? n.considered : "–"}</td><td class="num">${c ? c.registered : "–"}</td><td class="num">${c ? c.relsets : "–"}</td><td class="num">${c ? c.rules_produced : "–"}</td><td class="num">${c ? c.chosen : "–"}</td></tr>`; }).join("")}</tbody></table></div>`;
+  tp.innerHTML = `<div class="ph"><h2>All queries</h2></div><div class="tbl"><table><thead><tr><th>Query</th><th>Tables</th><th>PG costed</th><th>PG precheck</th><th>PG rejected</th><th>PG evicted</th><th>PG kept</th><th>PG costed (native)</th><th>Calcite nodes</th><th>Calcite RelSets</th><th>Calcite rule firings</th><th>Calcite in plan</th></tr></thead><tbody>${qs.map(x => { const a = x.pg && x.pg.summary, n = x.pg_native && x.pg_native.summary, c = calOf(x) && calOf(x).summary; return `<tr><td>${x.q}</td><td class="num">${queryTables(x).length}</td><td class="num">${a ? a.considered : "–"}</td><td class="num">${a ? a.pruned_precheck : "–"}</td><td class="num">${a ? a.pruned_on_arrival : "–"}</td><td class="num">${a ? a.evicted_later : "–"}</td><td class="num">${a ? a.retained : "–"}</td><td class="num">${n ? n.considered : "–"}</td><td class="num">${c ? c.registered : "–"}</td><td class="num">${c ? c.relsets : "–"}</td><td class="num">${c ? c.rules_produced : "–"}</td><td class="num">${c ? c.chosen : "–"}</td></tr>`; }).join("")}</tbody></table></div>`;
   main.appendChild(tp);
 }
 
 /* ---------- shell ---------- */
 function buttons() {
   const qb = $("#qbtns"); qb.querySelectorAll("button").forEach(b => b.remove());
-  for (const x of DATA.queries) { const b = h("button", { class: "chip", "aria-pressed": String(x.q === S.q) }, `${x.q}<small>${queryTables(x).length}T</small>`); b.onclick = () => { S.q = x.q; S.sel = null; render(); }; qb.appendChild(b); }
+  for (const x of DATA.queries) { const b = h("button", { class: "chip", "aria-pressed": String(x.q === S.q) }, `${x.q}<small>${queryTables(x).length}T</small>`); b.onclick = () => { S.q = x.q; S.sel = null; S.tu = null; render(); }; qb.appendChild(b); }
   const vb = $("#vbtns"); vb.querySelectorAll("button").forEach(b => b.remove());
   for (const [id, label] of [["lattice", "Search space"], ["steps", "Step through"], ["counts", "Counts"]]) { const b = h("button", { class: "chip", "aria-pressed": String(S.view === id) }, label); b.onclick = () => { S.view = id; try { history.replaceState(null, "", "#" + id); } catch (e) {} render(); }; vb.appendChild(b); }
   const mb = $("#mbtns"); mb.querySelectorAll("button").forEach(b => b.remove());
   for (const [id, label] of [["pg", "index scans off"], ["pg_native", "native"]]) { const b = h("button", { class: "chip", "aria-pressed": String(S.mode === id) }, label); b.onclick = () => { S.mode = id; S.sel = null; render(); }; mb.appendChild(b); }
+  const cb = $("#cbtns"); cb.querySelectorAll("button").forEach(b => b.remove());
+  const x = DATA.queries.find(z => z.q === S.q), cur = calMode(x);
+  for (const [id, label] of CMODES) { if (!x.cals[id]) continue; const b = h("button", { class: "chip", "aria-pressed": String(cur === id) }, label); b.onclick = () => { S.cmode = id; S.sel = null; S.tu = null; render(); }; cb.appendChild(b); }
 }
 function render() {
-  if (S.playing) { clearInterval(S.playing); S.playing = null; }
+  if (S.playing) { cancelAnimationFrame(S.playing); S.playing = null; }
   buttons(); hideTip();
   $("#sql").textContent = Q().sql;
+  $("#tleg").innerHTML = tableLegend(Q());
   const main = $("#main"); main.innerHTML = ""; main.style.display = "flex"; main.style.flexDirection = "column"; main.style.gap = "16px";
   if (S.view === "lattice") viewLattice(main); else if (S.view === "steps") viewSteps(main); else viewCounts(main);
 }
