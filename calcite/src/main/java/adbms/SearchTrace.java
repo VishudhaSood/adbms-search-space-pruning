@@ -60,6 +60,9 @@ public class SearchTrace implements RelOptListener {
    * counts, the table set of every RelSet, subsets and winners, the best-plan timeline and the final plan.
    * Needed for big JOB queries, whose memo is millions of nodes. Change with -Dtrace.limit=N (0 = never light).
    */
+  /** Plan trees are written down to this depth (a safety net only: a chosen plan is a finite tree). */
+  private static final int MAX_PLAN_DEPTH = 500;
+
   private static final int DETAIL_LIMIT = Integer.getInteger("trace.limit", 100_000);
   private boolean light = false;
 
@@ -157,7 +160,7 @@ public class SearchTrace implements RelOptListener {
       n.put("table", q.get(q.size() - 1));
     }
     List<Object> kids = new ArrayList<>();
-    if (depth < 30) {
+    if (depth < MAX_PLAN_DEPTH) {     // was 30: too shallow for 14-17 table JOB plans (33a's plan got cut off)
       for (RelNode in : rel.getInputs()) {
         RelNode b = in instanceof RelSubset ? ((RelSubset) in).getBest() : in;
         if (b == null) {
@@ -355,7 +358,7 @@ public class SearchTrace implements RelOptListener {
   }
 
   private static void collect(RelNode rel, Set<Integer> ids, int depth) {
-    if (rel == null || depth > 30) return;
+    if (rel == null || depth > MAX_PLAN_DEPTH) return;
     ids.add(rel.getId());
     for (RelNode in : rel.getInputs()) {
       collect(in instanceof RelSubset ? ((RelSubset) in).getBest() : in, ids, depth + 1);
