@@ -2,13 +2,11 @@
  "suffix": "_nosort_topdown_nocross_exchange",
  "counts": {
   "same plan": 4,
-  "row estimates": 81,
+  "row estimates": 83,
   "near tie": 3,
   "search space": 6
  },
  "skipped": [
-  "22b (ValueError: don't know how to translate EnumerableFilter with 0 inputs)",
-  "22c (ValueError: don't know how to translate EnumerableFilter with 0 inputs)",
   "30a",
   "30b",
   "30c",
@@ -120,7 +118,7 @@
    "tables": 5,
    "vs_pg": "mirrored",
    "cause": "row estimates",
-   "detail": "join {cn,k,mc,mk}: Calcite 2 vs PG 2",
+   "detail": "join {cn,k,mc,mk,t}: Calcite 2 vs PG 2",
    "calcite_cost": 22825.38,
    "pg_cost": 22938.33,
    "cost_diff": -0.0049,
@@ -129,7 +127,8 @@
      "cn",
      "k",
      "mc",
-     "mk"
+     "mk",
+     "t"
     ],
     "calcite": 1.7069797449718427,
     "pg": 2.0,
@@ -1329,7 +1328,6 @@
      "k",
      "mc",
      "mk",
-     "n",
      "t"
     ],
     "calcite": 295.2038019133784,
@@ -1357,7 +1355,6 @@
      "k",
      "mc",
      "mk",
-     "n",
      "t"
     ],
     "calcite": 147.6019009566892,
@@ -1817,6 +1814,48 @@
    },
    "calcite_order": "(k (mk (cn (ct ((t (mc ((mi it1) (mi_idx it2)))) kt)))))",
    "pg_order": "((((((mi it1) (mk k)) mc) cn) ct) ((t (mi_idx it2)) kt))",
+   "light_trace": true
+  },
+  {
+   "query": "22b",
+   "tables": 11,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 4",
+   "calcite_cost": 62527.78,
+   "pg_cost": 65736.07,
+   "cost_diff": -0.0488,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 4.0,
+    "ratio": 3203.5
+   },
+   "calcite_order": "(k (mk (cn (ct ((t (mc ((mi it1) (mi_idx it2)))) kt)))))",
+   "pg_order": "(((((((mk k) (mi_idx it2)) (mi it1)) mc) cn) ct) (t kt))",
+   "light_trace": true
+  },
+  {
+   "query": "22c",
+   "tables": 11,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 4",
+   "calcite_cost": 62527.78,
+   "pg_cost": 65542.68,
+   "cost_diff": -0.046,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 4.0,
+    "ratio": 3203.5
+   },
+   "calcite_order": "(k (mk (cn (ct ((t (mc ((mi it1) (mi_idx it2)))) kt)))))",
+   "pg_order": "((((mk k) ((t (mi_idx it2)) kt)) (mi it1)) ((mc cn) ct))",
    "light_trace": true
   },
   {
