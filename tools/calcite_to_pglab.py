@@ -37,7 +37,7 @@ CONFIG = "Config(plan_mode=full; exec_mode=sequential)"
 # block is silently ignored). The settings are fair mode, as in every other run.
 PREAMBLE = ("LOAD 'pg_lab';\n"
             "SET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;\n"
-            "SET max_parallel_workers_per_gather = 0; SET geqo = off;\n")   # geqo: JOB has 12-17 table queries
+            "SET max_parallel_workers_per_gather = 0; SET geqo = off; SET jit = off;\n")   # geqo: JOB has 12-17 table queries
 JOIN_HINT = {"EnumerableHashJoin": "HashJoin", "EnumerableMergeJoin": "MergeJoin",
              "EnumerableNestedLoopJoin": "NestLoop", "EnumerableBatchNestedLoopJoin": "NestLoop",
              # our own nested-loop rule (option nlj) produces EnumerableNestedLoopJoin as well
@@ -151,7 +151,7 @@ def main(argv):
     only = {q.upper() for q in argv}
 
     found = {}                                          # (query, suffix) -> path
-    pattern, regex = (("traces/job/calcite_*.json", r"traces/job/calcite_(\d+[a-z])(.*)\.json$") if job else
+    pattern, regex = (("traces/job/calcite_*.json*", r"traces/job/calcite_(\d+[a-z])(.*?)\.json(?:\.gz)?$") if job else
                       ("traces/calcite_Q*.json", r"traces/calcite_(Q\d+)(.*)\.json$"))
     for f in glob.glob(pattern):
         m = re.match(regex, f)
@@ -173,7 +173,8 @@ def main(argv):
         m = re.match(r"Q?(\d+)([a-z]?)", q)
         return (int(m.group(1)), m.group(2))
     for (q, suffix), f in sorted(found.items(), key=lambda x: (qkey(x[0][0]), x[0][1])):
-        t = json.load(open(f))
+        import gzip
+        t = json.load(gzip.open(f, "rt") if f.endswith(".gz") else open(f))
         try:
             cal = calcite_tree(t["final_plan"])
         except ValueError as e:
@@ -187,8 +188,10 @@ def main(argv):
             sql = pg_sql.get(q, t["sql"]).strip().rstrip(";")
         pg = None
         for pgf in ([f"traces/job/pg_{q}.json", f"traces/pg_{q}.json"] if job else [f"traces/pg_{q}.json"]):
-            if os.path.exists(pgf):
-                pg = pg_tree(json.load(open(pgf))["final_plan"])
+            if os.path.exists(pgf) or os.path.exists(pgf + ".gz"):
+                import gzip                     # 9-12 table PG traces are committed gzipped
+                fh = open(pgf) if os.path.exists(pgf) else gzip.open(pgf + ".gz", "rt")
+                pg = pg_tree(json.load(fh)["final_plan"])
                 break
         names, preds = parse(sql)
         adj = join_graph(names, preds, implied=True)
