@@ -81,6 +81,7 @@ def main():
             "rows": float(fd.get("rows", 0)),
             "sorted": int(fd.get("keys", 0)) > 0,
             "disabled": int(fd.get("disabled", 0)),
+            "sortkey": fd.get("sortkey") if fd.get("sortkey", "-") != "-" else None,
         }
         key = ",".join(ev["set"])
         if what == "survivor":

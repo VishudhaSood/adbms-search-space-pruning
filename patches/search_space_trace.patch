@@ -1,5 +1,5 @@
 diff --git a/src/backend/optimizer/path/allpaths.c b/src/backend/optimizer/path/allpaths.c
-index aa11037a5a..00009aa5f9 100644
+index aa11037a5a..49e11e4c32 100644
 --- a/src/backend/optimizer/path/allpaths.c
 +++ b/src/backend/optimizer/path/allpaths.c
 @@ -15,6 +15,10 @@
@@ -13,17 +13,25 @@ index aa11037a5a..00009aa5f9 100644
  #include <limits.h>
  #include <math.h>
  
-@@ -342,6 +346,9 @@ set_base_rel_pathlists(PlannerInfo *root)
+@@ -337,11 +341,17 @@ set_base_rel_sizes(PlannerInfo *root)
+  *	  Sequential scan and any available indices are considered.
+  *	  Each useful path is attached to its relation's 'pathlist' field.
+  */
++extern PlannerInfo *trace_root;
++
+ static void
+ set_base_rel_pathlists(PlannerInfo *root)
  {
  	Index		rti;
  
 +	/* ADBMS trace: start the stopwatch for this query */
 +	INSTR_TIME_SET_CURRENT(trace_clock_start);
++	trace_root = root;
 +
  	for (rti = 1; rti < root->simple_rel_array_size; rti++)
  	{
  		RelOptInfo *rel = root->simple_rel_array[rti];
-@@ -356,6 +363,9 @@ set_base_rel_pathlists(PlannerInfo *root)
+@@ -356,6 +366,9 @@ set_base_rel_pathlists(PlannerInfo *root)
  		if (rel->reloptkind != RELOPT_BASEREL)
  			continue;
  
@@ -91,10 +99,10 @@ index 621b1f1f4e..614430ee09 100644
  		bms_free(required_outer);
  	}
 diff --git a/src/backend/optimizer/util/pathnode.c b/src/backend/optimizer/util/pathnode.c
-index 5303231d02..7504e6b9c5 100644
+index 5303231d02..1b784960f0 100644
 --- a/src/backend/optimizer/util/pathnode.c
 +++ b/src/backend/optimizer/util/pathnode.c
-@@ -46,6 +46,81 @@ typedef enum
+@@ -46,6 +46,120 @@ typedef enum
  add_path_hook_type add_path_hook = NULL;
  add_partial_path_hook_type add_partial_path_hook = NULL;
  add_path_precheck_hook_type add_path_precheck_hook = NULL;
@@ -152,6 +160,45 @@ index 5303231d02..7504e6b9c5 100644
 +	}
 +}
 +
++/* ADBMS trace: first sort key of a path as "alias.column" (prof's point 7) */
++#include "parser/parsetree.h"
++extern PlannerInfo *trace_root;
++PlannerInfo *trace_root = NULL;
++
++static const char *
++trace_sortkey(Path *p)
++{
++	PathKey    *pk;
++	ListCell   *lc;
++
++	if (p->pathkeys == NIL || trace_root == NULL || p->parent == NULL)
++		return "-";
++	pk = (PathKey *) linitial(p->pathkeys);
++	foreach(lc, pk->pk_eclass->ec_members)
++	{
++		EquivalenceMember *em = (EquivalenceMember *) lfirst(lc);
++		Expr	   *e = em->em_expr;
++		Var		   *v;
++		RangeTblEntry *rte;
++
++		while (e && IsA(e, RelabelType))
++			e = ((RelabelType *) e)->arg;
++		if (e == NULL || !IsA(e, Var) || em->em_is_const ||
++			!bms_is_subset(em->em_relids, p->parent->relids))
++			continue;
++		v = (Var *) e;
++		if (v->varlevelsup != 0 || v->varattno <= 0 ||
++			v->varno < 1 || (int) v->varno >= trace_root->simple_rel_array_size)
++			continue;
++		rte = trace_root->simple_rte_array[v->varno];
++		if (rte == NULL || rte->eref == NULL)
++			continue;
++		return psprintf("%s.%s", rte->eref->aliasname,
++						get_rte_attribute_name(rte, v->varattno));
++	}
++	return "-";
++}
++
 +/* One log line per path event: kept / rejected / evict / survivor */
 +static void
 +trace_path(const char *what, RelOptInfo *rel, Path *p)
@@ -166,17 +213,17 @@ index 5303231d02..7504e6b9c5 100644
 +		outer = bmsToString(jp->outerjoinpath->parent->relids);
 +		inner = bmsToString(jp->innerjoinpath->parent->relids);
 +	}
-+	elog(LOG, "TRACE %s kind=%s rels=%s type=%s outer=%s inner=%s startup=%.2f total=%.2f rows=%.0f keys=%d disabled=%d t=%.1f",
++	elog(LOG, "TRACE %s kind=%s rels=%s type=%s outer=%s inner=%s startup=%.2f total=%.2f rows=%.0f keys=%d sortkey=%s disabled=%d t=%.1f",
 +		 what, trace_kind_name(rel->reloptkind), bmsToString(rel->relids),
 +		 trace_type_name(p->pathtype), outer, inner,
-+		 p->startup_cost, p->total_cost, p->rows, list_length(p->pathkeys), p->disabled_nodes,
++		 p->startup_cost, p->total_cost, p->rows, list_length(p->pathkeys), trace_sortkey(p), p->disabled_nodes,
 +		 trace_elapsed_us());
 +}
 +/* ---- end trace ---- */
  add_partial_path_precheck_hook_type add_partial_path_precheck_hook = NULL;
  
  /*
-@@ -288,6 +363,9 @@ set_cheapest(RelOptInfo *parent_rel)
+@@ -288,6 +402,9 @@ set_cheapest(RelOptInfo *parent_rel)
  	if (parent_rel->pathlist == NIL)
  		elog(ERROR, "could not devise a query plan for the given query");
  
@@ -186,7 +233,7 @@ index 5303231d02..7504e6b9c5 100644
  	cheapest_startup_path = cheapest_total_path = best_param_path = NULL;
  	parameterized_paths = NIL;
  
-@@ -650,6 +728,7 @@ standard_add_path(RelOptInfo *parent_rel, Path *new_path)
+@@ -650,6 +767,7 @@ standard_add_path(RelOptInfo *parent_rel, Path *new_path)
  		 */
  		if (remove_old)
  		{
@@ -194,7 +241,7 @@ index 5303231d02..7504e6b9c5 100644
  			parent_rel->pathlist = foreach_delete_current(parent_rel->pathlist,
  														  p1);
  
-@@ -680,6 +759,8 @@ standard_add_path(RelOptInfo *parent_rel, Path *new_path)
+@@ -680,6 +798,8 @@ standard_add_path(RelOptInfo *parent_rel, Path *new_path)
  			break;
  	}
  
