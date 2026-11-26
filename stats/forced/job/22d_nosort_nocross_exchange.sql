@@ -1,0 +1,57 @@
+LOAD 'pg_lab';
+SET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;
+SET max_parallel_workers_per_gather = 0; SET geqo = off; SET jit = off;
+/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)
+   JoinOrder(((mk k) ((cn (mc ((t ((mi it1) (mi_idx it2))) kt))) ct)))  HashJoin(mk k)  HashJoin(mi it1)  HashJoin(mi_idx it2)  HashJoin(mi it1 mi_idx it2)  HashJoin(t mi it1 mi_idx it2)  HashJoin(t mi it1 mi_idx it2 kt)  HashJoin(mc t mi it1 mi_idx it2 kt)  HashJoin(cn mc t mi it1 mi_idx it2 kt)  HashJoin(cn mc t mi it1 mi_idx it2 kt ct)  HashJoin(mk k cn mc t mi it1 mi_idx it2 kt ct)
+   SeqScan(cn) SeqScan(ct) SeqScan(it1) SeqScan(it2) SeqScan(k) SeqScan(kt) SeqScan(mc) SeqScan(mi) SeqScan(mi_idx) SeqScan(mk) SeqScan(t) */
+SELECT MIN(cn.name) AS movie_company,
+       MIN(mi_idx.info) AS rating,
+       MIN(t.title) AS western_violent_movie
+FROM company_name AS cn,
+     company_type AS ct,
+     info_type AS it1,
+     info_type AS it2,
+     keyword AS k,
+     kind_type AS kt,
+     movie_companies AS mc,
+     movie_info AS mi,
+     movie_info_idx AS mi_idx,
+     movie_keyword AS mk,
+     title AS t
+WHERE cn.country_code != '[us]'
+  AND it1.info = 'countries'
+  AND it2.info = 'rating'
+  AND k.keyword IN ('murder',
+                    'murder-in-title',
+                    'blood',
+                    'violence')
+  AND kt.kind IN ('movie',
+                  'episode')
+  AND mi.info IN ('Sweden',
+                  'Norway',
+                  'Germany',
+                  'Denmark',
+                  'Swedish',
+                  'Danish',
+                  'Norwegian',
+                  'German',
+                  'USA',
+                  'American')
+  AND mi_idx.info < '8.5'
+  AND t.production_year > 2005
+  AND kt.id = t.kind_id
+  AND t.id = mi.movie_id
+  AND t.id = mk.movie_id
+  AND t.id = mi_idx.movie_id
+  AND t.id = mc.movie_id
+  AND mk.movie_id = mi.movie_id
+  AND mk.movie_id = mi_idx.movie_id
+  AND mk.movie_id = mc.movie_id
+  AND mi.movie_id = mi_idx.movie_id
+  AND mi.movie_id = mc.movie_id
+  AND mc.movie_id = mi_idx.movie_id
+  AND k.id = mk.keyword_id
+  AND it1.id = mi.info_type_id
+  AND it2.id = mi_idx.info_type_id
+  AND ct.id = mc.company_type_id
+  AND cn.id = mc.company_id;

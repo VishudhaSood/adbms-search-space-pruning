@@ -1,0 +1,71 @@
+LOAD 'pg_lab';
+SET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off;
+SET max_parallel_workers_per_gather = 0; SET geqo = off; SET jit = off;
+/*=pg_lab= Config(plan_mode=full; exec_mode=sequential)
+   JoinOrder((an (t (((pi it3) (n (chn ((mi it) (cn ((ci (mc (mk k))) ((cc cct1) cct2))))))) rt))))  HashJoin(pi it3)  HashJoin(mi it)  HashJoin(mk k)  HashJoin(mc mk k)  HashJoin(ci mc mk k)  HashJoin(cc cct1)  HashJoin(cc cct1 cct2)  HashJoin(ci mc mk k cc cct1 cct2)  HashJoin(cn ci mc mk k cc cct1 cct2)  HashJoin(mi it cn ci mc mk k cc cct1 cct2)  HashJoin(chn mi it cn ci mc mk k cc cct1 cct2)  HashJoin(n chn mi it cn ci mc mk k cc cct1 cct2)  HashJoin(pi it3 n chn mi it cn ci mc mk k cc cct1 cct2)  HashJoin(pi it3 n chn mi it cn ci mc mk k cc cct1 cct2 rt)  HashJoin(t pi it3 n chn mi it cn ci mc mk k cc cct1 cct2 rt)  HashJoin(an t pi it3 n chn mi it cn ci mc mk k cc cct1 cct2 rt)
+   SeqScan(an) SeqScan(cc) SeqScan(cct1) SeqScan(cct2) SeqScan(chn) SeqScan(ci) SeqScan(cn) SeqScan(it) SeqScan(it3) SeqScan(k) SeqScan(mc) SeqScan(mi) SeqScan(mk) SeqScan(n) SeqScan(pi) SeqScan(rt) SeqScan(t) */
+SELECT MIN(chn.name) AS voiced_char,
+       MIN(n.name) AS voicing_actress,
+       MIN(t.title) AS voiced_animation
+FROM aka_name AS an,
+     complete_cast AS cc,
+     comp_cast_type AS cct1,
+     comp_cast_type AS cct2,
+     char_name AS chn,
+     cast_info AS ci,
+     company_name AS cn,
+     info_type AS it,
+     info_type AS it3,
+     keyword AS k,
+     movie_companies AS mc,
+     movie_info AS mi,
+     movie_keyword AS mk,
+     name AS n,
+     person_info AS pi,
+     role_type AS rt,
+     title AS t
+WHERE cct1.kind ='cast'
+  AND cct2.kind ='complete+verified'
+  AND ci.note IN ('(voice)',
+                  '(voice: Japanese version)',
+                  '(voice) (uncredited)',
+                  '(voice: English version)')
+  AND cn.country_code ='[us]'
+  AND it.info = 'release dates'
+  AND it3.info = 'trivia'
+  AND k.keyword = 'computer-animation'
+  AND mi.info IS NOT NULL
+  AND (mi.info LIKE 'Japan:%200%'
+       OR mi.info LIKE 'USA:%200%')
+  AND n.gender ='f'
+  AND n.name LIKE '%An%'
+  AND rt.role ='actress'
+  AND t.production_year BETWEEN 2000 AND 2010
+  AND t.id = mi.movie_id
+  AND t.id = mc.movie_id
+  AND t.id = ci.movie_id
+  AND t.id = mk.movie_id
+  AND t.id = cc.movie_id
+  AND mc.movie_id = ci.movie_id
+  AND mc.movie_id = mi.movie_id
+  AND mc.movie_id = mk.movie_id
+  AND mc.movie_id = cc.movie_id
+  AND mi.movie_id = ci.movie_id
+  AND mi.movie_id = mk.movie_id
+  AND mi.movie_id = cc.movie_id
+  AND ci.movie_id = mk.movie_id
+  AND ci.movie_id = cc.movie_id
+  AND mk.movie_id = cc.movie_id
+  AND cn.id = mc.company_id
+  AND it.id = mi.info_type_id
+  AND n.id = ci.person_id
+  AND rt.id = ci.role_id
+  AND n.id = an.person_id
+  AND ci.person_id = an.person_id
+  AND chn.id = ci.person_role_id
+  AND n.id = pi.person_id
+  AND ci.person_id = pi.person_id
+  AND it3.id = pi.info_type_id
+  AND k.id = mk.keyword_id
+  AND cct1.id = cc.subject_id
+  AND cct2.id = cc.status_id;

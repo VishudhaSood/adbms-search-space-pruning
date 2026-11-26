@@ -2,9 +2,9 @@
  "suffix": "_nosort_nocross_exchange",
  "counts": {
   "same plan": 5,
-  "row estimates": 47,
+  "row estimates": 88,
   "near tie": 3,
-  "search space": 7
+  "search space": 8
  },
  "skipped": [],
  "queries": [
@@ -109,7 +109,7 @@
    "tables": 5,
    "vs_pg": "mirrored",
    "cause": "row estimates",
-   "detail": "join {cn,k,mc,mk,t}: Calcite 2 vs PG 2",
+   "detail": "join {cn,k,mc,mk}: Calcite 2 vs PG 2",
    "calcite_cost": 22825.38,
    "pg_cost": 22938.33,
    "cost_diff": -0.0049,
@@ -118,8 +118,7 @@
      "cn",
      "k",
      "mc",
-     "mk",
-     "t"
+     "mk"
     ],
     "calcite": 1.7069797449718427,
     "pg": 2.0,
@@ -1015,6 +1014,99 @@
    "light_trace": false
   },
   {
+   "query": "13a",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "search space",
+   "detail": "Calcite never built {cn,it,mc,miidx} (in PG's plan)",
+   "calcite_cost": 51327.18,
+   "pg_cost": 51264.35,
+   "cost_diff": 0.0012,
+   "worst_rows": {
+    "set": [
+     "it",
+     "miidx"
+    ],
+    "calcite": 1223.442477876106,
+    "pg": 1223.0,
+    "ratio": 1.0
+   },
+   "calcite_order": "((t (((mi it2) (miidx it)) ((mc cn) ct))) kt)",
+   "pg_order": "((mi it2) ((t (((mc cn) (miidx it)) ct)) kt))",
+   "light_trace": true
+  },
+  {
+   "query": "13b",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {t}: Calcite 31604 vs PG 47",
+   "calcite_cost": 52053.18,
+   "pg_cost": 52516.5,
+   "cost_diff": -0.0088,
+   "worst_rows": {
+    "set": [
+     "t"
+    ],
+    "calcite": 31604.0,
+    "pg": 47.0,
+    "ratio": 672.43
+   },
+   "calcite_order": "(cn ((mc (((mi it2) (miidx it)) (t kt))) ct))",
+   "pg_order": "((((miidx it) (((mc t) kt) ct)) (mi it2)) cn)",
+   "light_trace": true
+  },
+  {
+   "query": "13c",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {t}: Calcite 31604 vs PG 47",
+   "calcite_cost": 52053.18,
+   "pg_cost": 52516.5,
+   "cost_diff": -0.0088,
+   "worst_rows": {
+    "set": [
+     "t"
+    ],
+    "calcite": 31604.0,
+    "pg": 47.0,
+    "ratio": 672.43
+   },
+   "calcite_order": "(cn ((mc (((mi it2) (miidx it)) (t kt))) ct))",
+   "pg_order": "((((miidx it) (((mc t) kt) ct)) (mi it2)) cn)",
+   "light_trace": true
+  },
+  {
+   "query": "13d",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "join {cn,ct,it,it2,kt,mc,mi,miidx,t}: Calcite 7 vs PG 8",
+   "calcite_cost": 52468.06,
+   "pg_cost": 51755.44,
+   "cost_diff": 0.0138,
+   "worst_rows": {
+    "set": [
+     "cn",
+     "ct",
+     "it",
+     "it2",
+     "kt",
+     "mc",
+     "mi",
+     "miidx",
+     "t"
+    ],
+    "calcite": 7.0713845805724205,
+    "pg": 8.0,
+    "ratio": 1.13
+   },
+   "calcite_order": "(((mc cn) (((mi it2) (miidx it)) (t kt))) ct)",
+   "pg_order": "((((mi it2) (mc ((t (miidx it)) kt))) cn) ct)",
+   "light_trace": true
+  },
+  {
    "query": "14a",
    "tables": 8,
    "vs_pg": "different",
@@ -1076,6 +1168,90 @@
    "calcite_order": "((mk k) ((t ((mi it1) (mi_idx it2))) kt))",
    "pg_order": "(((mk k) ((t (mi_idx it2)) kt)) (mi it1))",
    "light_trace": false
+  },
+  {
+   "query": "15a",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {mi}: Calcite 92384 vs PG 19",
+   "calcite_cost": 64530.63,
+   "pg_cost": 64659.3,
+   "cost_diff": -0.002,
+   "worst_rows": {
+    "set": [
+     "mi"
+    ],
+    "calcite": 92384.25,
+    "pg": 19.0,
+    "ratio": 4862.33
+   },
+   "calcite_order": "((mk (t ((at ((mi it1) (mc cn))) ct))) k)",
+   "pg_order": "((((it1 mi) (mk (t ((mc cn) at)))) ct) k)",
+   "light_trace": true
+  },
+  {
+   "query": "15b",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {mi}: Calcite 92384 vs PG 19",
+   "calcite_cost": 63626.11,
+   "pg_cost": 64335.41,
+   "cost_diff": -0.011,
+   "worst_rows": {
+    "set": [
+     "mi"
+    ],
+    "calcite": 92384.25,
+    "pg": 19.0,
+    "ratio": 4862.33
+   },
+   "calcite_order": "(k (mk (t ((mi it1) (ct (at (mc cn)))))))",
+   "pg_order": "(((it1 mi) at) (t (k (mk ((cn mc) ct)))))",
+   "light_trace": true
+  },
+  {
+   "query": "15c",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {mi}: Calcite 92384 vs PG 28",
+   "calcite_cost": 70394.25,
+   "pg_cost": 67989.28,
+   "cost_diff": 0.0354,
+   "worst_rows": {
+    "set": [
+     "mi"
+    ],
+    "calcite": 92384.25,
+    "pg": 28.0,
+    "ratio": 3299.44
+   },
+   "calcite_order": "((((((mi it1) (mc cn)) ct) (at t)) mk) k)",
+   "pg_order": "((mk (((t ((mc (it1 mi)) ct)) at) cn)) k)",
+   "light_trace": true
+  },
+  {
+   "query": "15d",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {mi}: Calcite 369537 vs PG 895",
+   "calcite_cost": 68280.2,
+   "pg_cost": 60610.78,
+   "cost_diff": 0.1265,
+   "worst_rows": {
+    "set": [
+     "mi"
+    ],
+    "calcite": 369537.0,
+    "pg": 895.0,
+    "ratio": 412.89
+   },
+   "calcite_order": "((((((mi it1) (mc cn)) ct) (at t)) mk) k)",
+   "pg_order": "((mk ((t ((mc ((it1 mi) at)) cn)) ct)) k)",
+   "light_trace": true
   },
   {
    "query": "16a",
@@ -1385,6 +1561,738 @@
    },
    "calcite_order": "((((mi it1) (ci (mi_idx it2))) n) t)",
    "pg_order": "(n (ci ((mi (t (mi_idx it2))) it1)))",
+   "light_trace": false
+  },
+  {
+   "query": "19a",
+   "tables": 10,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {n}: Calcite 61542 vs PG 2487",
+   "calcite_cost": 183695.18,
+   "pg_cost": 189761.18,
+   "cost_diff": -0.032,
+   "worst_rows": {
+    "set": [
+     "n"
+    ],
+    "calcite": 61542.384456294996,
+    "pg": 2487.0,
+    "ratio": 24.75
+   },
+   "calcite_order": "(an (t ((((mi it) (mc cn)) ((ci n) chn)) rt)))",
+   "pg_order": "(((chn (((ci (an n)) rt) (mc t))) (mi it)) cn)",
+   "light_trace": true
+  },
+  {
+   "query": "19b",
+   "tables": 10,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {t}: Calcite 15802 vs PG 2",
+   "calcite_cost": 181304.25,
+   "pg_cost": 180234.07,
+   "cost_diff": 0.0059,
+   "worst_rows": {
+    "set": [
+     "t"
+    ],
+    "calcite": 15802.0,
+    "pg": 2.0,
+    "ratio": 7901.0
+   },
+   "calcite_order": "(an (t (n ((mi it) (((ci rt) chn) (mc cn))))))",
+   "pg_order": "(((((((chn (an (ci t))) mc) cn) mi) it) n) rt)",
+   "light_trace": true
+  },
+  {
+   "query": "19c",
+   "tables": 10,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {ci}: Calcite 905038 vs PG 88090",
+   "calcite_cost": 186021.8,
+   "pg_cost": 189857.5,
+   "cost_diff": -0.0202,
+   "worst_rows": {
+    "set": [
+     "an",
+     "chn",
+     "ci",
+     "cn",
+     "it",
+     "mc",
+     "mi",
+     "n",
+     "rt",
+     "t"
+    ],
+    "calcite": 86.59832549154157,
+    "pg": 1.0,
+    "ratio": 86.6
+   },
+   "calcite_order": "(an (t ((((mi it) (mc cn)) ((ci n) chn)) rt)))",
+   "pg_order": "(((an (chn ((mi it) ((ci n) rt)))) (mc cn)) t)",
+   "light_trace": true
+  },
+  {
+   "query": "19d",
+   "tables": 10,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {ci}: Calcite 905038 vs PG 88090",
+   "calcite_cost": 191207.03,
+   "pg_cost": 191856.46,
+   "cost_diff": -0.0034,
+   "worst_rows": {
+    "set": [
+     "chn",
+     "ci",
+     "rt"
+    ],
+    "calcite": 36827.5249625,
+    "pg": 3584.0,
+    "ratio": 10.28
+   },
+   "calcite_order": "((((((ci rt) chn) ((mi it) (mc cn))) n) t) an)",
+   "pg_order": "(((((ci chn) rt) (mc ((mi it) t))) cn) (an n))",
+   "light_trace": true
+  },
+  {
+   "query": "20a",
+   "tables": 10,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 8",
+   "calcite_cost": 135408.98,
+   "pg_cost": 131863.13,
+   "cost_diff": 0.0269,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 8.0,
+    "ratio": 1601.75
+   },
+   "calcite_order": "(n (((ci chn) ((cc cct1) cct2)) ((mk k) (t kt))))",
+   "pg_order": "(((mk k) ((t ((cc cct1) cct2)) kt)) (n (ci chn)))",
+   "light_trace": true
+  },
+  {
+   "query": "20b",
+   "tables": 10,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {n}: Calcite 258112 vs PG 103",
+   "calcite_cost": 132182.14,
+   "pg_cost": 130774.15,
+   "cost_diff": 0.0108,
+   "worst_rows": {
+    "set": [
+     "n"
+    ],
+    "calcite": 258111.5,
+    "pg": 103.0,
+    "ratio": 2505.94
+   },
+   "calcite_order": "(n (((ci chn) ((cc cct1) cct2)) ((mk k) (t kt))))",
+   "pg_order": "(((((mk k) ((cc cct1) cct2)) (ci chn)) n) (t kt))",
+   "light_trace": true
+  },
+  {
+   "query": "20c",
+   "tables": 10,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 10",
+   "calcite_cost": 141834.75,
+   "pg_cost": 131040.06,
+   "cost_diff": 0.0824,
+   "worst_rows": {
+    "set": [
+     "k",
+     "mk"
+    ],
+    "calcite": 111662.75000000001,
+    "pg": 87.0,
+    "ratio": 1283.48
+   },
+   "calcite_order": "((((ci chn) ((cc cct1) cct2)) ((mk k) (t kt))) n)",
+   "pg_order": "(((mk k) (n ((ci chn) ((cc cct1) cct2)))) (t kt))",
+   "light_trace": true
+  },
+  {
+   "query": "21a",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {mi}: Calcite 369537 vs PG 12363",
+   "calcite_cost": 59019.86,
+   "pg_cost": 69481.53,
+   "cost_diff": -0.1506,
+   "worst_rows": {
+    "set": [
+     "mi"
+    ],
+    "calcite": 369537.0,
+    "pg": 12363.0,
+    "ratio": 29.89
+   },
+   "calcite_order": "(mi ((t (cn (mc (lt (ml (mk k)))))) ct))",
+   "pg_order": "((((t (mk k)) (ml lt)) ((mc cn) ct)) mi)",
+   "light_trace": true
+  },
+  {
+   "query": "21b",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {mi}: Calcite 369537 vs PG 10938",
+   "calcite_cost": 59019.86,
+   "pg_cost": 58423.37,
+   "cost_diff": 0.0102,
+   "worst_rows": {
+    "set": [
+     "mi"
+    ],
+    "calcite": 369537.0,
+    "pg": 10938.0,
+    "ratio": 33.78
+   },
+   "calcite_order": "(mi ((t (cn (mc (lt (ml (mk k)))))) ct))",
+   "pg_order": "((((t (mk k)) (ml lt)) ((mc cn) ct)) mi)",
+   "light_trace": true
+  },
+  {
+   "query": "21c",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {lt}: Calcite 4 vs PG 1",
+   "calcite_cost": 59019.86,
+   "pg_cost": 62643.07,
+   "cost_diff": -0.0578,
+   "worst_rows": {
+    "set": [
+     "lt"
+    ],
+    "calcite": 4.5,
+    "pg": 1.0,
+    "ratio": 4.5
+   },
+   "calcite_order": "(mi ((t (cn (mc (lt (ml (mk k)))))) ct))",
+   "pg_order": "((mi (t (((mc cn) ct) (ml lt)))) (mk k))",
+   "light_trace": true
+  },
+  {
+   "query": "22a",
+   "tables": 11,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 4",
+   "calcite_cost": 62527.78,
+   "pg_cost": 65577.68,
+   "cost_diff": -0.0465,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 4.0,
+    "ratio": 3203.5
+   },
+   "calcite_order": "(k (mk (cn (ct ((t (mc ((mi it1) (mi_idx it2)))) kt)))))",
+   "pg_order": "((((((mi it1) (mk k)) mc) cn) ct) ((t (mi_idx it2)) kt))",
+   "light_trace": true
+  },
+  {
+   "query": "22b",
+   "tables": 11,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 4",
+   "calcite_cost": 62527.78,
+   "pg_cost": 65736.07,
+   "cost_diff": -0.0488,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 4.0,
+    "ratio": 3203.5
+   },
+   "calcite_order": "(k (mk (cn (ct ((t (mc ((mi it1) (mi_idx it2)))) kt)))))",
+   "pg_order": "(((((((mk k) (mi_idx it2)) (mi it1)) mc) cn) ct) (t kt))",
+   "light_trace": true
+  },
+  {
+   "query": "22c",
+   "tables": 11,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 4",
+   "calcite_cost": 62527.78,
+   "pg_cost": 65542.68,
+   "cost_diff": -0.046,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 4.0,
+    "ratio": 3203.5
+   },
+   "calcite_order": "(k (mk (cn (ct ((t (mc ((mi it1) (mi_idx it2)))) kt)))))",
+   "pg_order": "((((mk k) ((t (mi_idx it2)) kt)) (mi it1)) ((mc cn) ct))",
+   "light_trace": true
+  },
+  {
+   "query": "22d",
+   "tables": 11,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 4",
+   "calcite_cost": 62415.91,
+   "pg_cost": 64747.99,
+   "cost_diff": -0.036,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 4.0,
+    "ratio": 3203.5
+   },
+   "calcite_order": "((mk k) ((cn (mc ((t ((mi it1) (mi_idx it2))) kt))) ct))",
+   "pg_order": "(((mi it1) ((t (mi_idx it2)) kt)) ((cn (mc (mk k))) ct))",
+   "light_trace": true
+  },
+  {
+   "query": "23a",
+   "tables": 11,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {mi}: Calcite 92384 vs PG 28",
+   "calcite_cost": 63356.55,
+   "pg_cost": 66901.2,
+   "cost_diff": -0.053,
+   "worst_rows": {
+    "set": [
+     "mi"
+    ],
+    "calcite": 92384.25,
+    "pg": 28.0,
+    "ratio": 3299.44
+   },
+   "calcite_order": "(k (mk (((t kt) ((mi it1) ((mc cn) (cc cct1)))) ct)))",
+   "pg_order": "(((((it1 mi) (mk (mc ((t (cc cct1)) kt)))) cn) ct) k)",
+   "light_trace": true
+  },
+  {
+   "query": "23b",
+   "tables": 11,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {mi}: Calcite 92384 vs PG 19",
+   "calcite_cost": 63176.31,
+   "pg_cost": 62660.74,
+   "cost_diff": 0.0082,
+   "worst_rows": {
+    "set": [
+     "mi"
+    ],
+    "calcite": 92384.25,
+    "pg": 19.0,
+    "ratio": 4862.33
+   },
+   "calcite_order": "((mk k) (((t kt) ((mi it1) ((mc cn) (cc cct1)))) ct))",
+   "pg_order": "((((it1 mi) (t kt)) (mk k)) (((mc cn) (cc cct1)) ct))",
+   "light_trace": true
+  },
+  {
+   "query": "23c",
+   "tables": 11,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {mi}: Calcite 92384 vs PG 28",
+   "calcite_cost": 63633.88,
+   "pg_cost": 67180.62,
+   "cost_diff": -0.0528,
+   "worst_rows": {
+    "set": [
+     "mi"
+    ],
+    "calcite": 92384.25,
+    "pg": 28.0,
+    "ratio": 3299.44
+   },
+   "calcite_order": "(k (mk (((t kt) ((mi it1) ((mc cn) (cc cct1)))) ct)))",
+   "pg_order": "((((it1 mi) (mk ((mc ((t (cc cct1)) kt)) cn))) ct) k)",
+   "light_trace": true
+  },
+  {
+   "query": "24a",
+   "tables": 12,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 3",
+   "calcite_cost": 197832.77,
+   "pg_cost": 196594.8,
+   "cost_diff": 0.0063,
+   "worst_rows": {
+    "set": [
+     "k",
+     "mk"
+    ],
+    "calcite": 111662.75000000001,
+    "pg": 26.0,
+    "ratio": 4294.72
+   },
+   "calcite_order": "(an ((((((mi it) (mc cn)) ((ci n) chn)) (mk k)) rt) t))",
+   "pg_order": "((chn (((ci (an n)) rt) (it mi))) (t ((mc (mk k)) cn)))",
+   "light_trace": true
+  },
+  {
+   "query": "24b",
+   "tables": 12,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {t}: Calcite 31604 vs PG 4",
+   "calcite_cost": 192879.03,
+   "pg_cost": 197097.56,
+   "cost_diff": -0.0214,
+   "worst_rows": {
+    "set": [
+     "t"
+    ],
+    "calcite": 31604.0,
+    "pg": 4.0,
+    "ratio": 7901.0
+   },
+   "calcite_order": "(an (t ((k (mk (((ci n) chn) ((mi it) (mc cn))))) rt)))",
+   "pg_order": "((((((chn (an ((ci (mc cn)) rt))) (mk k)) mi) it) n) t)",
+   "light_trace": true
+  },
+  {
+   "query": "25a",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 5",
+   "calcite_cost": 156295.09,
+   "pg_cost": 166431.97,
+   "cost_diff": -0.0609,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 5.0,
+    "ratio": 2562.8
+   },
+   "calcite_order": "(t (k (mk (n ((mi it1) (ci (mi_idx it2)))))))",
+   "pg_order": "(((it1 mi) (n (ci (mk k)))) (t (mi_idx it2)))",
+   "light_trace": false
+  },
+  {
+   "query": "25b",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {t}: Calcite 31604 vs PG 4",
+   "calcite_cost": 156729.64,
+   "pg_cost": 166569.67,
+   "cost_diff": -0.0591,
+   "worst_rows": {
+    "set": [
+     "t"
+    ],
+    "calcite": 31604.0,
+    "pg": 4.0,
+    "ratio": 7901.0
+   },
+   "calcite_order": "(n (k (mk (t ((mi it1) (ci (mi_idx it2)))))))",
+   "pg_order": "(((((n (ci t)) (mk k)) (mi_idx it2)) mi) it1)",
+   "light_trace": false
+  },
+  {
+   "query": "25c",
+   "tables": 9,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 7",
+   "calcite_cost": 163984.43,
+   "pg_cost": 174223.95,
+   "cost_diff": -0.0588,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 7.0,
+    "ratio": 1830.57
+   },
+   "calcite_order": "(((mk k) (((mi it1) (ci (mi_idx it2))) n)) t)",
+   "pg_order": "(((it1 mi) (n (ci (mk k)))) (t (mi_idx it2)))",
+   "light_trace": false
+  },
+  {
+   "query": "26a",
+   "tables": 12,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 10",
+   "calcite_cost": 134952.7,
+   "pg_cost": 133620.66,
+   "cost_diff": 0.01,
+   "worst_rows": {
+    "set": [
+     "k",
+     "mk"
+    ],
+    "calcite": 111662.75000000001,
+    "pg": 87.0,
+    "ratio": 1283.48
+   },
+   "calcite_order": "(n ((t ((mk k) (((ci chn) (mi_idx it2)) ((cc cct1) cct2)))) kt))",
+   "pg_order": "((((mk k) ((cc cct1) cct2)) (n ((ci chn) (t kt)))) (mi_idx it2))",
+   "light_trace": true
+  },
+  {
+   "query": "26b",
+   "tables": 12,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 4",
+   "calcite_cost": 134952.7,
+   "pg_cost": 132866.81,
+   "cost_diff": 0.0157,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 4.0,
+    "ratio": 3203.5
+   },
+   "calcite_order": "(n ((t ((mk k) (((ci chn) (mi_idx it2)) ((cc cct1) cct2)))) kt))",
+   "pg_order": "((((mi_idx it2) (mk k)) (n ((ci chn) ((cc cct1) cct2)))) (t kt))",
+   "light_trace": true
+  },
+  {
+   "query": "26c",
+   "tables": 12,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 10",
+   "calcite_cost": 134816.32,
+   "pg_cost": 133611.77,
+   "cost_diff": 0.009,
+   "worst_rows": {
+    "set": [
+     "k",
+     "mk"
+    ],
+    "calcite": 111662.75000000001,
+    "pg": 87.0,
+    "ratio": 1283.48
+   },
+   "calcite_order": "(n ((t ((mk k) (((ci chn) ((cc cct1) cct2)) (mi_idx it2)))) kt))",
+   "pg_order": "((((mk k) ((cc cct1) cct2)) (n ((ci chn) (t kt)))) (mi_idx it2))",
+   "light_trace": true
+  },
+  {
+   "query": "27a",
+   "tables": 12,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {mi}: Calcite 369537 vs PG 11015",
+   "calcite_cost": 59279.57,
+   "pg_cost": 62422.52,
+   "cost_diff": -0.0503,
+   "worst_rows": {
+    "set": [
+     "mi"
+    ],
+    "calcite": 369537.0,
+    "pg": 11015.0,
+    "ratio": 33.55
+   },
+   "calcite_order": "(mi (((cc ((t (cn (mc (lt (ml (mk k)))))) ct)) cct1) cct2))",
+   "pg_order": "(((((mk k) (ml lt)) (t ((cc cct2) cct1))) ((mc cn) ct)) mi)",
+   "light_trace": true
+  },
+  {
+   "query": "27b",
+   "tables": 12,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {mi}: Calcite 369537 vs PG 11015",
+   "calcite_cost": 59061.35,
+   "pg_cost": 61510.63,
+   "cost_diff": -0.0398,
+   "worst_rows": {
+    "set": [
+     "mi"
+    ],
+    "calcite": 369537.0,
+    "pg": 11015.0,
+    "ratio": 33.55
+   },
+   "calcite_order": "(mi (((cc (t ((cn (mc (lt (ml (mk k))))) ct))) cct1) cct2))",
+   "pg_order": "(((((mk k) (ml lt)) (((mc cn) ((cc cct2) cct1)) ct)) mi) t)",
+   "light_trace": true
+  },
+  {
+   "query": "27c",
+   "tables": 12,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {lt}: Calcite 4 vs PG 1",
+   "calcite_cost": 59279.57,
+   "pg_cost": 62968.11,
+   "cost_diff": -0.0586,
+   "worst_rows": {
+    "set": [
+     "lt"
+    ],
+    "calcite": 4.5,
+    "pg": 1.0,
+    "ratio": 4.5
+   },
+   "calcite_order": "(mi (((cc ((t (cn (mc (lt (ml (mk k)))))) ct)) cct1) cct2))",
+   "pg_order": "(((mi (((mc cn) ct) (ml lt))) (mk k)) (t ((cc cct1) cct2)))",
+   "light_trace": true
+  },
+  {
+   "query": "30a",
+   "tables": 12,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 7",
+   "calcite_cost": 157649.47,
+   "pg_cost": 168250.34,
+   "cost_diff": -0.063,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 7.0,
+    "ratio": 1830.57
+   },
+   "calcite_order": "(t (k (mk (n ((mi it1) ((ci ((cc cct1) cct2)) (mi_idx it2)))))))",
+   "pg_order": "(((((mk k) (n (ci (((cc (mi_idx it2)) cct2) cct1)))) mi) it1) t)",
+   "light_trace": true
+  },
+  {
+   "query": "30b",
+   "tables": 12,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 7",
+   "calcite_cost": 157926.01,
+   "pg_cost": 168430.25,
+   "cost_diff": -0.0624,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 7.0,
+    "ratio": 1830.57
+   },
+   "calcite_order": "(t (k (mk (n ((mi it1) ((ci ((cc cct1) cct2)) (mi_idx it2)))))))",
+   "pg_order": "((((t (n (ci (((cc (mi_idx it2)) cct2) cct1)))) (mk k)) mi) it1)",
+   "light_trace": true
+  },
+  {
+   "query": "30c",
+   "tables": 12,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {k}: Calcite 12814 vs PG 7",
+   "calcite_cost": 157491.45,
+   "pg_cost": 174525.82,
+   "cost_diff": -0.0976,
+   "worst_rows": {
+    "set": [
+     "k"
+    ],
+    "calcite": 12814.0,
+    "pg": 7.0,
+    "ratio": 1830.57
+   },
+   "calcite_order": "(t (k (mk (n ((mi it1) ((ci ((cc cct1) cct2)) (mi_idx it2)))))))",
+   "pg_order": "((((((cc cct1) cct2) (n (ci (t (mk k))))) mi) it1) (mi_idx it2))",
+   "light_trace": true
+  },
+  {
+   "query": "31a",
+   "tables": 11,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {cn}: Calcite 14427 vs PG 6",
+   "calcite_cost": 170691.67,
+   "pg_cost": 173239.46,
+   "cost_diff": -0.0147,
+   "worst_rows": {
+    "set": [
+     "cn",
+     "mc"
+    ],
+    "calcite": 65096.75,
+    "pg": 27.0,
+    "ratio": 2410.99
+   },
+   "calcite_order": "(t ((mk k) (((mi it1) ((ci (mi_idx it2)) (mc cn))) n)))",
+   "pg_order": "(((((mk k) (n (ci (mc cn)))) (t (mi_idx it2))) mi) it1)",
+   "light_trace": false
+  },
+  {
+   "query": "31b",
+   "tables": 11,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {cn}: Calcite 14427 vs PG 6",
+   "calcite_cost": 165291.87,
+   "pg_cost": 174750.22,
+   "cost_diff": -0.0541,
+   "worst_rows": {
+    "set": [
+     "cn",
+     "mc"
+    ],
+    "calcite": 16274.1875,
+    "pg": 1.0,
+    "ratio": 16274.19
+   },
+   "calcite_order": "(n ((mk k) (t ((mi it1) ((ci (mi_idx it2)) (mc cn))))))",
+   "pg_order": "((((((n (ci (mc cn))) (mk k)) (mi_idx it2)) mi) it1) t)",
+   "light_trace": false
+  },
+  {
+   "query": "31c",
+   "tables": 11,
+   "vs_pg": "different",
+   "cause": "row estimates",
+   "detail": "base {cn}: Calcite 14427 vs PG 6",
+   "calcite_cost": 176900.97,
+   "pg_cost": 180398.81,
+   "cost_diff": -0.0194,
+   "worst_rows": {
+    "set": [
+     "cn",
+     "mc"
+    ],
+    "calcite": 65096.75,
+    "pg": 27.0,
+    "ratio": 2410.99
+   },
+   "calcite_order": "(((mk k) (((mi it1) ((ci (mi_idx it2)) (mc cn))) n)) t)",
+   "pg_order": "(((((mk k) (n (ci (mc cn)))) (t (mi_idx it2))) mi) it1)",
    "light_trace": false
   },
   {
