@@ -57,6 +57,10 @@ def run_plan(preamble, hint, sql):
 
 idx = json.load(open(f"{OUT}/index.json"))
 todo = [e for e in idx if e.get("forceable") and (ALL or e.get("vs_pg") != "same")]
+import os
+ONLY = {q.strip() for q in os.environ.get("ONLY", "").split(",") if q.strip()}
+if ONLY:
+    todo = [e for e in todo if e["query"] in ONLY]
 os.makedirs(f"{OUT}/runs", exist_ok=True)
 results = []
 for e in todo:
